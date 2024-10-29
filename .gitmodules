@@ -1,0 +1,3 @@
+[submodule "extern/utilityKnife"]
+	path = extern/utilityKnife
+	url = git@github.com:danelbro/utilityKnife
