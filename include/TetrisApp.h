@@ -6,7 +6,6 @@
 #include <string>
 #include <utl_Application.hpp>
 #include <utl_StageManager.hpp>
-#include <utl_utility.hpp>
 
 class TetrisApp : public utl::Application {
 public:
@@ -17,8 +16,7 @@ public:
     /// @param screenWidth The width of the screen
     /// @param screenHeight The height of the screen
     /// @param windowFlags Alias for SDL_WindowFlags
-    TetrisApp(const std::string& title, int screenWidth, int screenHeight,
-              unsigned windowFlags);
+    TetrisApp();
     ~TetrisApp();
 
     /// Starts the StageManager state machine.
