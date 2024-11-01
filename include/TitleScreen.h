@@ -9,10 +9,10 @@
 #include <memory>
 #include <string>
 #include <utl_Box.hpp>
+#include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 #include <vector>
-#include <utl_Entity.hpp>
 
 /// A Stage that displays a title screen and, depending on input, either quits
 /// or goes into the main game stage
@@ -29,5 +29,8 @@ public:
     void render(double t, double dt) override;
 
 private:
-    std::vector<std::unique_ptr<utl::Entity>> entities;
+    utl::Font titleFont_;
+    utl::Font instructionsFont_;
+
+    std::vector<std::unique_ptr<utl::Entity>> entities_;
 };

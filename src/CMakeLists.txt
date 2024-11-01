@@ -1,7 +1,10 @@
 add_executable(tetris)
 target_sources(tetris PRIVATE
   "tetris.cpp"
-  "TetrisApp.cpp" "../include/TetrisApp.h")
+  "TetrisApp.cpp" "../include/TetrisApp.h"
+  "TitleScreen.cpp" "../include/TitleScreen.h"
+  "../include/constants.h"
+  "../include/flags.h")
 target_include_directories(tetris PUBLIC "../include/")
 target_link_libraries(tetris PRIVATE tetris_extern)
 target_link_libraries(tetris PRIVATE utilityKnife)

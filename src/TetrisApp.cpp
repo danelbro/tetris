@@ -1,22 +1,29 @@
 #include "TetrisApp.h"
 
+#include "TitleScreen.h"
+#include "constants.h"
+#include "flags.h"
+
 #include <string>
 #include <utl_Application.hpp>
 #include <utl_SDLInterface.hpp>
 
-const std::string tetrisTitle{"Tetris"};
-const std::string tetrisVersion{"0.0.1"};
-const std::string tetrisIdentifier{"com.tetris.tetris"};
-constexpr int screenWidth{1280};
-constexpr int screenHeight{720};
-constexpr unsigned sdlFlags{SDL_INIT_VIDEO};
-constexpr unsigned windowFlags{0};
-
 TetrisApp::TetrisApp()
-    : utl::Application{tetrisTitle, tetrisVersion, tetrisIdentifier,
-                       screenWidth, screenHeight,  sdlFlags,
-                       windowFlags}
+    : utl::Application{constants::tetrisTitle,      constants::tetrisVersion,
+                       constants::tetrisIdentifier, constants::screenWidth,
+                       constants::screenHeight,     constants::sdlFlags,
+                       constants::windowFlags}
 {
+    m_renderer.setVSync(1);
+    LOG("Set VSync\n");
+
+    m_stageManager.add_stage<TitleScreen>(
+        flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN), m_screenSpace,
+        m_windowID, m_renderer);
+    m_stageManager.set_next_stage(
+        flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN));
+    m_stageManager.set_current_stage(
+        flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN));
     LOG("Created TetrisApp\n");
 }
 
@@ -25,9 +32,21 @@ TetrisApp::~TetrisApp()
     LOG("Destroying TetrisApp\n");
 }
 
-void TetrisApp::run()
+void TetrisApp::trigger_stage_change(const std::string& next)
 {
-    // m_stageManager.run(); }
-}
+    utl::Box& screen{m_stageManager.get_current_stage()->screen()};
+    uint32_t windowID{m_stageManager.get_current_stage()->windowID()};
+    utl::Renderer& renderer{m_stageManager.get_current_stage()->renderer()};
 
-void TetrisApp::trigger_stage_change(const std::string&) {}
+    switch (flags::STAGES_STRING_MAP.at(next)) {
+    case flags::STAGES::TITLE_SCREEN:
+        m_stageManager.add_stage<TitleScreen>(next, screen, windowID, renderer);
+        break;
+    case flags::STAGES::QUIT:
+        break;
+    default:
+        break;
+    }
+
+    LOGF("Going to %s stage\n", next.c_str());
+}

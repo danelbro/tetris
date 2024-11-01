@@ -11,19 +11,10 @@ class TetrisApp : public utl::Application {
 public:
     /// Initialises the Application and adds a TitleScreen Stage to the
     /// StageManager.
-    ///
-    /// @param title The title of the application
-    /// @param screenWidth The width of the screen
-    /// @param screenHeight The height of the screen
-    /// @param windowFlags Alias for SDL_WindowFlags
     TetrisApp();
     ~TetrisApp();
 
-    /// Starts the StageManager state machine.
-    void run() override;
-
     /// Decides which Stage to add to the StageMnager next
-    ///
     /// @param newStage Label of the string to change to.
     void trigger_stage_change(const std::string& newStage) override;
 };

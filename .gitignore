@@ -508,3 +508,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/.project
