@@ -1,5 +1,6 @@
 #include "TitleScreen.h"
 
+#include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -27,18 +28,21 @@ TitleScreen::TitleScreen(utl::Box& screenRef, uint32_t windowID,
 {
     auto title{
         std::make_unique<utl::TextObject>(screen(), renderer(), titleFont_)};
-    title->loadFromRenderedText("TETRIS", {0xFF, 0xFF, 0xFF, 0xFF});
+    title->loadFromRenderedText("TETRIS", colours::titleText);
     title->recentre();
     title->setPos({title->pos().x, title->pos().y - title->size().y / 3});
 
     auto instructions{std::make_unique<utl::TextObject>(screen(), renderer(),
                                                         instructionsFont_)};
-    instructions->loadFromRenderedText("Press Enter", {0xFF, 0xFF, 0xFF, 0xFF});
+    instructions->loadFromRenderedText("Press Enter",
+                                       colours::instructionsText);
     instructions->recentre();
     instructions->setPos({instructions->pos().x,
                           instructions->pos().y + instructions->size().y});
     entities_.emplace_back(std::move(title));
     entities_.emplace_back(std::move(instructions));
+
+    utl::setRendererDrawColour(renderer(), colours::background);
 }
 
 std::string
@@ -47,8 +51,8 @@ TitleScreen::handle_input(double, double,
 {
     utl::process_input(screen(), windowID(), keyState);
 
-    if (keyState.at(utl::KeyFlag::QUIT)
-        || keyState.at(utl::KeyFlag::K_ESCAPE)) {
+    if (keyState.at(utl::KeyFlag::QUIT) || keyState.at(utl::KeyFlag::K_ESCAPE)
+        || keyState.at(utl::KeyFlag::K_ENTER)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
     }
 
