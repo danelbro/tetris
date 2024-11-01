@@ -1,7 +1,11 @@
+// -*- C++ -*-
+/// @file Contains global constants for configuration
+
 #pragma once
 
 #include <cstdint>
 #include <filesystem>
+#include <utl_SDLInterface.hpp>
 
 namespace constants {
 
@@ -19,4 +23,4 @@ inline const std::filesystem::path instructionsFontPath{
 inline constexpr int32_t titleFontSize{128};
 inline constexpr int32_t instructionsFontSize{48};
 
-} // namespace constants
+}  // namespace constants
