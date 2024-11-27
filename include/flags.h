@@ -9,6 +9,18 @@
 
 namespace flags {
 
+enum class ENTITIES
+{
+    TETROMINO,
+    ENTITIES_TOTAL
+};
+
+inline const std::unordered_map<ENTITIES, std::string> ENTITIES_MAP{
+    {ENTITIES::TETROMINO, "TETROMINO"}};
+
+inline const std::unordered_map<std::string, ENTITIES> ENTITIES_STRING_MAP{
+    {"TETROMINO", ENTITIES::TETROMINO}};
+
 enum class STAGES
 {
     TITLE_SCREEN,

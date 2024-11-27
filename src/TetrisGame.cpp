@@ -1,9 +1,12 @@
 #include "TetrisGame.h"
 
+#include "Tetromino.h"
+#include "colours.h"
 #include "flags.h"
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
@@ -12,8 +15,13 @@
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
-                 flags::STAGES_MAP.at(flags::STAGES::TETRIS)}
-{}
+                 flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
+      entities_{}
+{
+    entities_.reserve(0xFF);
+    entities_.emplace_back(
+        std::make_unique<Tetromino>(screen, colours::titleText));
+}
 
 std::string
 TetrisGame::handle_input(double, double,
@@ -29,13 +37,19 @@ TetrisGame::handle_input(double, double,
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
-std::string TetrisGame::update(double, double)
+std::string TetrisGame::update(double t, double dt)
 {
+    for (const auto& entity : entities_) {
+        entity->update(t, dt);
+    }
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
 void TetrisGame::render(double, double)
 {
     utl::clearScreen(renderer());
+    for (const auto& entity : entities_) {
+        entity->render(renderer());
+    }
     utl::presentRenderer(renderer());
 }

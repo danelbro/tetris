@@ -3,6 +3,7 @@ target_sources(tetris PRIVATE
   "tetris.cpp"
   "TetrisApp.cpp" "../include/TetrisApp.h"
   "TetrisGame.cpp" "../include/TetrisGame.h"
+  "Tetromino.cpp" "../include/Tetromino.h"
   "TitleScreen.cpp" "../include/TitleScreen.h"
   "../include/constants.h"
   "../include/flags.h")
