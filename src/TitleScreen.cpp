@@ -51,9 +51,13 @@ TitleScreen::handle_input(double, double,
 {
     utl::process_input(screen(), windowID(), keyState);
 
-    if (keyState.at(utl::KeyFlag::QUIT) || keyState.at(utl::KeyFlag::K_ESCAPE)
-        || keyState.at(utl::KeyFlag::K_ENTER)) {
+    if (keyState.at(utl::KeyFlag::QUIT)
+        || keyState.at(utl::KeyFlag::K_ESCAPE)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
+    }
+
+    if (keyState.at(utl::KeyFlag::K_ENTER)) {
+        return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
     }
 
     return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);

@@ -1,5 +1,6 @@
 #include "TetrisApp.h"
 
+#include "TetrisGame.h"
 #include "TitleScreen.h"
 #include "constants.h"
 #include "flags.h"
@@ -41,6 +42,9 @@ void TetrisApp::trigger_stage_change(const std::string& next)
     switch (flags::STAGES_STRING_MAP.at(next)) {
     case flags::STAGES::TITLE_SCREEN:
         m_stageManager.add_stage<TitleScreen>(next, screen, windowID, renderer);
+        break;
+    case flags::STAGES::TETRIS:
+        m_stageManager.add_stage<TetrisGame>(next, screen, windowID, renderer);
         break;
     case flags::STAGES::QUIT:
         break;

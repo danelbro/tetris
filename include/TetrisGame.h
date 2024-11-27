@@ -8,6 +8,7 @@
 #include <utl_Stage.hpp>
 
 class TetrisGame : public utl::Stage {
+public:
     TetrisGame(utl::Box& screen, uint32_t windowID, utl::Renderer& renderer);
     std::string handle_input(double t, double dt,
                              std::array<bool, utl::KeyFlag::K_TOTAL>& keyState);
