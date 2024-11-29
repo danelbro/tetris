@@ -11,14 +11,20 @@ namespace flags {
 
 enum class ENTITIES
 {
+    GRID,
+    CELL,
     TETROMINO,
     ENTITIES_TOTAL
 };
 
 inline const std::unordered_map<ENTITIES, std::string> ENTITIES_MAP{
+    {ENTITIES::GRID, "GRID"},
+    {ENTITIES::CELL, "CELL"},
     {ENTITIES::TETROMINO, "TETROMINO"}};
 
 inline const std::unordered_map<std::string, ENTITIES> ENTITIES_STRING_MAP{
+    {"GRID", ENTITIES::GRID},
+    {"CELL", ENTITIES::CELL},
     {"TETROMINO", ENTITIES::TETROMINO}};
 
 enum class STAGES

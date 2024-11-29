@@ -1,6 +1,8 @@
 add_executable(tetris)
 target_sources(tetris PRIVATE
   "tetris.cpp"
+  "Cell.cpp" "../include/Cell.h"
+  "Grid.cpp" "../include/Grid.h"
   "TetrisApp.cpp" "../include/TetrisApp.h"
   "TetrisGame.cpp" "../include/TetrisGame.h"
   "Tetromino.cpp" "../include/Tetromino.h"

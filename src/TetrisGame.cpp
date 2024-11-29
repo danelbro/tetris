@@ -1,6 +1,6 @@
 #include "TetrisGame.h"
 
-#include "Tetromino.h"
+#include "Grid.h"
 #include "colours.h"
 #include "flags.h"
 
@@ -16,11 +16,9 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
-      entities_{}
+      grid{screen, colours::gridWalls}, entities_{}
 {
     entities_.reserve(0xFF);
-    entities_.emplace_back(
-        std::make_unique<Tetromino>(screen, colours::titleText));
 }
 
 std::string
@@ -39,6 +37,7 @@ TetrisGame::handle_input(double, double,
 
 std::string TetrisGame::update(double t, double dt)
 {
+    grid.update(t, dt);
     for (const auto& entity : entities_) {
         entity->update(t, dt);
     }
@@ -48,6 +47,7 @@ std::string TetrisGame::update(double t, double dt)
 void TetrisGame::render(double, double)
 {
     utl::clearScreen(renderer());
+    grid.render(renderer());
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }

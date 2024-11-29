@@ -4,14 +4,15 @@
 
 #include <utl_SDLInterface.hpp>
 
-Tetromino::Tetromino(utl::Box& screen, utl::Colour colour)
+Tetromino::Tetromino(utl::Box& screen, utl::Colour colour,
+                     TetrominoShape tetrominoShape)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::TETROMINO),
                   screen,
                   {screen.w / 2 - (32 / 2), 0}},
-      shape{static_cast<int>(pos().x), static_cast<int>(pos().y), 32, 32},
-      col{colour}, tickTime{1.0}, timeSinceTick{0.0},
-      dropDistance{shape.get()->h}
-{}
+      shape{}, col{colour}, tickTime{1.0}, timeSinceTick{0.0}, dropDistance{}
+{
+    readShape(tetrominoShape);
+}
 
 void Tetromino::update(double, double dt)
 {

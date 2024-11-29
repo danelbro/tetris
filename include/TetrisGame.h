@@ -1,6 +1,8 @@
 // -*- C++ -*-
 /// @file A Stage for running the main Tetris game loop.
 
+#include "Grid.h"
+
 #include <array>
 #include <memory>
 #include <string>
@@ -19,5 +21,6 @@ public:
     void render(double t, double dt);
 
 private:
+    Grid grid;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
 };

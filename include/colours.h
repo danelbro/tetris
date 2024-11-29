@@ -18,4 +18,7 @@ inline const Colour titleText{0xFF, 0xFF, 0xFF, 0xFF};
 /// white
 inline const Colour instructionsText{0xFF, 0xFF, 0xFF, 0xFF};
 
+/// white
+inline const Colour gridWalls{0xFF, 0xFF, 0xFF, 0xFF};
+
 }  // namespace colours
