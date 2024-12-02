@@ -9,25 +9,21 @@
 
 #include <array>
 #include <utl_Entity.hpp>
-#include <utl_SDLInterface.hpp>
-
-struct TetrominoShape {
-    std::array<int, constants::shapeWidth * constants::shapeHeight> shape;
-};
+#include <utl_Vec2d.hpp>
 
 class Tetromino : public utl::Entity {
 public:
-    Tetromino(utl::Box& screen, utl::Colour, TetrominoShape tetrominoShape);
+    Tetromino(utl::Box& screen, const utl::Vec2d& pos, const utl::Colour&,
+              const TetrominoShape& tetrominoShape);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
 private:
-    void readShape(TetrominoShape tetrominoShape);
+    void readShape(const TetrominoShape& tetrominoShape);
 
     std::vector<Cell> shape;
     utl::Colour col;
     double tickTime;
     double timeSinceTick;
-    double dropDistance;
 };

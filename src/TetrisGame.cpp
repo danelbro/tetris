@@ -1,7 +1,9 @@
 #include "TetrisGame.h"
 
 #include "Grid.h"
+#include "Tetromino.h"
 #include "colours.h"
+#include "constants.h"
 #include "flags.h"
 
 #include <array>
@@ -12,11 +14,16 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 
+static const utl::Vec2d newpos{0.0, 0.0};
+
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
-      grid{screen, colours::gridWalls}, entities_{}
+      grid{screen, colours::gridWalls},
+      testTetro{screen, newpos, colours::O_tetrominoCol,
+                constants::O_tetromino},
+      entities_{}
 {
     entities_.reserve(0xFF);
 }
@@ -38,6 +45,7 @@ TetrisGame::handle_input(double, double,
 std::string TetrisGame::update(double t, double dt)
 {
     grid.update(t, dt);
+    testTetro.update(t, dt);
     for (const auto& entity : entities_) {
         entity->update(t, dt);
     }
@@ -48,6 +56,7 @@ void TetrisGame::render(double, double)
 {
     utl::clearScreen(renderer());
     grid.render(renderer());
+    testTetro.render(renderer());
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }

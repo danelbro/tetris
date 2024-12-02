@@ -29,9 +29,9 @@ void Grid::render(utl::Renderer& renderer)
     for (utl::Rect& wall : walls) {
         wall.draw(renderer);
     }
-    for (Cell& cell : grid) {
-        cell.render(renderer);
-    }
+    // for (Cell& cell : grid) {
+    //     cell.render(renderer);
+    // }
     utl::setRendererDrawColour(renderer, old);
 }
 

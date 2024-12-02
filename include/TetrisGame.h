@@ -2,6 +2,7 @@
 /// @file A Stage for running the main Tetris game loop.
 
 #include "Grid.h"
+#include "Tetromino.h"
 
 #include <array>
 #include <memory>
@@ -22,5 +23,6 @@ public:
 
 private:
     Grid grid;
+    Tetromino testTetro;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
 };
