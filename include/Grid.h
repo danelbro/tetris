@@ -15,7 +15,7 @@ public:
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
-    Cell get(unsigned x, unsigned y);
+    Cell& get(unsigned x, unsigned y);
 
 private:
     void placeWalls();

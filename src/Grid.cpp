@@ -12,7 +12,7 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
-      walls{}, grid{}, col{colour}
+      walls{}, grid{screen}, col{colour}
 {
     placeWalls();
 }
@@ -32,7 +32,7 @@ void Grid::render(utl::Renderer& renderer)
     utl::setRendererDrawColour(renderer, old);
 }
 
-Cell Grid::get(unsigned x, unsigned y)
+Cell& Grid::get(unsigned x, unsigned y)
 {
     return grid[x + y * constants::gridWidth];
 }
@@ -47,8 +47,8 @@ void Grid::placeWalls()
             h = (constants::gridWallThickness * 2)
                 + (constants::cellHeight * constants::gridHeight);
             x = pos().x
-                + (i * (constants::cellWidth * constants::gridWidth) / 2)
-                + (i * (constants::gridWallThickness / 2));
+                + (i * (constants::cellWidth * constants::gridWidth) / 2.0)
+                + (i * (constants::gridWallThickness / 2.0));
             y = pos().y;
         } else {
             // top and bottom
@@ -58,8 +58,8 @@ void Grid::placeWalls()
             x = pos().x;
             y = pos().y
                 + ((i - 1)
-                   * (constants::cellHeight * (constants::gridHeight / 2)))
-                + (i - 1) * (constants::gridWallThickness / 2);
+                   * (constants::cellHeight * (constants::gridHeight / 2.0)))
+                + (i - 1) * (constants::gridWallThickness / 2.0);
         }
         walls[i] = utl::Rect(x, y, w, h);
     }

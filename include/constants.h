@@ -29,34 +29,41 @@ inline constexpr int cellHeight{32};
 inline constexpr unsigned shapeWidth{4};
 inline constexpr unsigned shapeHeight{4};
 
-inline const std::array<int, shapeWidth * shapeHeight> I_tetromino{
-    0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> I_tetromino{
+    false, false, false, false, true,  true,  true,  true,
+    false, false, false, false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> O_tetromino{
-    0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> O_tetromino{
+    false, false, false, false, false, true,  true,  false,
+    false, true,  true,  false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> T_tetromino{
-    0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> T_tetromino{
+    false, false, false, false, true,  true,  true,  false,
+    false, true,  false, false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> J_tetromino{
-    0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> J_tetromino{
+    false, true, false, false, false, true,  false, false,
+    true,  true, false, false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> L_tetromino{
-    1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> L_tetromino{
+    true, false, false, false, true,  false, false, false,
+    true, true,  false, false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> S_tetromino{
-    0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> S_tetromino{
+    false, false, true,  true,  false, true,  true,  false,
+    false, false, false, false, false, false, false, false};
 
-inline const std::array<int, shapeWidth * shapeHeight> Z_tetromino{
-    1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+inline const std::array<bool, shapeWidth * shapeHeight> Z_tetromino{
+    true,  true,  false, false, false, true,  true,  false,
+    false, false, false, false, false, false, false, false};
 
 inline constexpr unsigned gridWidth{10};
 inline constexpr unsigned gridHeight{20};
 inline constexpr int gridWallThickness{16};
-inline constexpr double gridPosX{screenWidth / 2 - (cellWidth * (gridWidth / 2))
+    inline constexpr double gridPosX{screenWidth / 2.0 - (cellWidth * (gridWidth / 2.0))
                                  - gridWallThickness};
 inline constexpr double gridPosY{
-    screenHeight / 2 - (cellHeight * (gridHeight / 2)) - gridWallThickness};
+    screenHeight / 2.0 - (cellHeight * (gridHeight / 2.0)) - gridWallThickness};
 inline constexpr unsigned gridWalls{4};
 
 }  // namespace constants
