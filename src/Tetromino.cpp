@@ -14,6 +14,9 @@ Tetromino::Tetromino(utl::Box& screen, utl::Colour colour,
                   {screen.w / 2 - (32 / 2), 0}},
       shape{}, col{colour}, tickTime{1.0}, timeSinceTick{0.0}, dropDistance{}
 {
+    for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
+        shape.emplace_back(screen);
+    }
     readShape(tetrominoShape);
 }
 

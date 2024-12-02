@@ -25,7 +25,7 @@ public:
 private:
     void readShape(TetrominoShape tetrominoShape);
 
-    std::array<Cell, constants::shapeWidth * constants::shapeHeight> shape;
+    std::vector<Cell> shape;
     utl::Colour col;
     double tickTime;
     double timeSinceTick;

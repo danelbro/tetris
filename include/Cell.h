@@ -12,7 +12,9 @@ public:
     Cell(utl::Box& screen);
     Cell(utl::Box& screen, int x, int y, int w, int h,
          const utl::Colour& colour);
-
+    Cell(const Cell&);
+    Cell(Cell&&);
+    Cell& operator=(const Cell&) = delete;
     Cell& operator=(Cell&&);
 
     void update(double t, double dt) override;

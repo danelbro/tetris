@@ -21,7 +21,7 @@ private:
     void placeWalls();
 
     std::array<utl::Rect, constants::gridWalls> walls;
-    std::array<Cell, constants::gridWidth * constants::gridHeight> grid;
+    std::vector<Cell> grid;
 
     utl::Colour col;
 };

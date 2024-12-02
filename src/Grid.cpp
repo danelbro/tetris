@@ -12,8 +12,11 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
-      walls{}, grid{screen}, col{colour}
+      walls{}, grid{}, col{colour}
 {
+    for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
+        grid.emplace_back(screen);
+    }
     placeWalls();
 }
 
