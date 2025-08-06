@@ -48,8 +48,8 @@ void Tetromino::readShape(const TetrominoShape& tetrominoShape)
             shape[i].makeRender();
             size_t x{i % constants::shapeWidth};
             size_t y{i / constants::shapeWidth};
-            int newX{m_pos.x + constants::cellWidth * x};
-            int newY{m_pos.x + constants::cellHeight * y};
+            int newX{static_cast<int>(m_pos.x + constants::cellWidth * x)};
+            int newY{static_cast<int>(m_pos.x + constants::cellHeight * y)};
             LOGF("Cell Xpos: %d", newX);
             LOGF("Cell Ypos: %d\n", newY);
             shape[i].update_rect(newX, newY, constants::cellWidth,

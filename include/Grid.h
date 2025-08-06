@@ -19,6 +19,7 @@ public:
 
 private:
     void placeWalls();
+    void placeBGCells();
 
     std::array<utl::Rect, constants::gridWalls> walls;
     std::vector<Cell> grid;

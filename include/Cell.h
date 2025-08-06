@@ -26,6 +26,8 @@ public:
     void makeRender() { renderMe_ = true; }
     void stopRendering() { renderMe_ = false; }
 
+    void setColour(const utl::Colour& colour) { col = colour; }
+
     bool renderMe() { return renderMe_; }
 
 private:

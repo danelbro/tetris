@@ -1,6 +1,7 @@
 #include "Grid.h"
 
 #include "Cell.h"
+#include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -18,9 +19,12 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
         grid.emplace_back(screen);
     }
     placeWalls();
+    placeBGCells();
 }
 
-void Grid::update(double, double) {}
+void Grid::update(double, double)
+{
+}
 
 void Grid::render(utl::Renderer& renderer)
 {
@@ -29,9 +33,9 @@ void Grid::render(utl::Renderer& renderer)
     for (utl::Rect& wall : walls) {
         wall.draw(renderer);
     }
-    // for (Cell& cell : grid) {
-    //     cell.render(renderer);
-    // }
+    for (Cell& cell : grid) {
+        cell.render(renderer);
+    }
     utl::setRendererDrawColour(renderer, old);
 }
 
@@ -64,6 +68,23 @@ void Grid::placeWalls()
                    * (constants::cellHeight * (constants::gridHeight / 2.0)))
                 + (i - 1) * (constants::gridWallThickness / 2.0);
         }
-        walls[i] = utl::Rect(x, y, w, h);
+        walls[i] = utl::Rect{x, y, w, h};
+    }
+}
+
+void Grid::placeBGCells()
+{
+    for (size_t i{0}; i < grid.size(); ++i) {
+        auto& cell{grid[i]};
+        cell.makeRender();
+        cell.setColour(colours::gridBG);
+    }
+
+    for (size_t y{0}; y < constants::gridHeight; ++y) {
+        for (size_t x{0}; x < constants::gridWidth; ++x) {
+            grid[x + y * constants::gridWidth].set_pos(
+                {m_pos.x + (x * constants::cellWidth),
+                 m_pos.y + (y * constants::cellHeight)}  );
+        }
     }
 }
