@@ -4,6 +4,7 @@
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
+#include "utl_Vec2d.hpp"
 
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -80,11 +81,14 @@ void Grid::placeBGCells()
         cell.setColour(colours::gridBG);
     }
 
+    const utl::Vec2d base_pos{pos().x + constants::gridWallThickness,
+                             pos().y + constants::gridWallThickness};
+
     for (size_t y{0}; y < constants::gridHeight; ++y) {
         for (size_t x{0}; x < constants::gridWidth; ++x) {
             grid[x + y * constants::gridWidth].set_pos(
-                {m_pos.x + (x * constants::cellWidth),
-                 m_pos.y + (y * constants::cellHeight)}  );
+                {base_pos.x + (x * constants::cellWidth),
+                 base_pos.y + (y * constants::cellHeight)}  );
         }
     }
 }

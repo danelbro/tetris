@@ -31,8 +31,8 @@ Cell::Cell(const Cell& old)
       col{old.col}, renderMe_{false}
 {
     if (old.rect.get()) {
-        rect.reset(old.rect.get()->x, old.rect.get()->y, old.rect.get()->w,
-                   old.rect.get()->h);
+        rect.reset(old.rect.x(), old.rect.y(), old.rect.w(),
+                   old.rect.h());
     }
 }
 
@@ -47,8 +47,8 @@ Cell& Cell::operator=(Cell&& old)
 {
     set_pos(std::move(old.pos()));
     if (old.rect.get()) {
-        rect.reset(std::move(old.rect.get()->x), std::move(old.rect.get()->y),
-                   std::move(old.rect.get()->w), std::move(old.rect.get()->h));
+        rect.reset(std::move(old.rect.x()), std::move(old.rect.y()),
+                   std::move(old.rect.w()), std::move(old.rect.h()));
     }
     col = std::move(old.col);
     renderMe_ = old.renderMe_;
@@ -59,6 +59,13 @@ Cell& Cell::operator=(Cell&& old)
 void Cell::update_rect(int x, int y, int w, int h)
 {
     rect.reset(x, y, w, h);
+}
+
+void Cell::set_pos(const utl::Vec2d& newPos)
+{
+    m_pos = newPos;
+    if (rect.get())
+        rect.reset(m_pos.x, m_pos.y, rect.w(), rect.h());
 }
 
 void Cell::update(double, double) {}

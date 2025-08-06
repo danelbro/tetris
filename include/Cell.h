@@ -6,6 +6,7 @@
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 
 class Cell : public utl::Entity {
 public:
@@ -19,6 +20,7 @@ public:
     Cell& operator=(Cell&&);
 
     void update_rect(int x, int y, int w, int h);
+    void set_pos(const utl::Vec2d& newPos);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
