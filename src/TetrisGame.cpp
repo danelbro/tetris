@@ -14,15 +14,20 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 
-static const utl::Vec2d newpos{0.0, 0.0};
+static const utl::Vec2d newpos{
+    constants::gridPosX + constants::gridWallThickness,
+    constants::gridPosY + constants::gridWallThickness};
 
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
       grid{screen, colours::gridWalls},
-      testTetro{screen, newpos, colours::O_tetrominoCol,
-                constants::O_tetromino},
+      testTetro{screen,
+                grid,
+                {constants::gridWidth - 4, constants::gridHeight - 1},
+                colours::I_tetrominoCol,
+                constants::I_tetromino},
       entities_{}
 {
     entities_.reserve(0xFF);

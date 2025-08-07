@@ -14,6 +14,8 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
+      innerTopLeft{constants::gridPosX + constants::gridWallThickness,
+                   constants::gridPosY + constants::gridWallThickness},
       walls{}, grid{}, col{colour}
 {
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
@@ -21,11 +23,10 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
     }
     placeWalls();
     placeBGCells();
+    enableRenderBGCells();
 }
 
-void Grid::update(double, double)
-{
-}
+void Grid::update(double, double) {}
 
 void Grid::render(utl::Renderer& renderer)
 {
@@ -75,20 +76,22 @@ void Grid::placeWalls()
 
 void Grid::placeBGCells()
 {
-    for (size_t i{0}; i < grid.size(); ++i) {
-        auto& cell{grid[i]};
-        cell.makeRender();
-        cell.setColour(colours::gridBG);
-    }
-
     const utl::Vec2d base_pos{pos().x + constants::gridWallThickness,
-                             pos().y + constants::gridWallThickness};
+                              pos().y + constants::gridWallThickness};
 
     for (size_t y{0}; y < constants::gridHeight; ++y) {
         for (size_t x{0}; x < constants::gridWidth; ++x) {
             grid[x + y * constants::gridWidth].set_pos(
                 {base_pos.x + (x * constants::cellWidth),
-                 base_pos.y + (y * constants::cellHeight)}  );
+                 base_pos.y + (y * constants::cellHeight)});
         }
+    }
+}
+
+void Grid::enableRenderBGCells()
+{
+    for (size_t i{0}; i < grid.size(); ++i) {
+        grid[i].setColour(colours::gridBG);
+        grid[i].makeRender();
     }
 }

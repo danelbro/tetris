@@ -17,9 +17,12 @@ public:
 
     Cell& get(unsigned x, unsigned y);
 
+    const utl::Vec2d innerTopLeft;
+
 private:
     void placeWalls();
     void placeBGCells();
+    void enableRenderBGCells();
 
     std::array<utl::Rect, constants::gridWalls> walls;
     std::vector<Cell> grid;

@@ -30,7 +30,9 @@ public:
 
     void setColour(const utl::Colour& colour) { col = colour; }
 
-    bool renderMe() { return renderMe_; }
+    const utl::Colour& colour() const { return col; }
+
+    bool renderMe() const { return renderMe_; }
 
 private:
     utl::Rect rect;

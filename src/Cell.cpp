@@ -1,5 +1,6 @@
 #include "Cell.h"
 
+#include "constants.h"
 #include "flags.h"
 
 #include <utl_Box.hpp>
@@ -64,16 +65,17 @@ void Cell::update_rect(int x, int y, int w, int h)
 void Cell::set_pos(const utl::Vec2d& newPos)
 {
     m_pos = newPos;
-    if (rect.get())
-        rect.reset(m_pos.x, m_pos.y, rect.w(), rect.h());
+    update_rect(m_pos.x, m_pos.y, constants::cellWidth, constants::cellHeight);
 }
 
 void Cell::update(double, double) {}
 
 void Cell::render(utl::Renderer& renderer)
 {
-    utl::Colour oldCol{utl::getRendererDrawColour(renderer)};
-    utl::setRendererDrawColour(renderer, col);
-    rect.draw(renderer);
-    utl::setRendererDrawColour(renderer, oldCol);
+    if (renderMe_) {
+        utl::Colour oldCol{utl::getRendererDrawColour(renderer)};
+        utl::setRendererDrawColour(renderer, col);
+        rect.draw(renderer);
+        utl::setRendererDrawColour(renderer, oldCol);
+    }
 }

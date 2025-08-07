@@ -8,7 +8,8 @@ target_sources(tetris PRIVATE
   "Tetromino.cpp" "../include/Tetromino.h"
   "TitleScreen.cpp" "../include/TitleScreen.h"
   "../include/constants.h"
-  "../include/flags.h")
+  "../include/flags.h"
+  "../include/GridPoint.h")
 target_include_directories(tetris PUBLIC "../include/")
 target_link_libraries(tetris PRIVATE tetris_extern)
 target_link_libraries(tetris PRIVATE utilityKnife)
