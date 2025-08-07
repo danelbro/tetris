@@ -110,82 +110,68 @@ void Tetromino::repositionInScreenSpace()
 
 static int determineCurrentWidth(const std::vector<Cell>& shape)
 {
-    int max_width{-1};
-    int running_width{0};
+    size_t left{constants::shapeWidth};
+    size_t right{0};
     bool is_line_started{false};
     bool is_cell_on{false};
 
     for (size_t y{0}; y < constants::shapeHeight; ++y) {
-        running_width = 0;
         is_line_started = false;
         for (size_t x{0}; x < constants::shapeWidth; ++x) {
             is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            if (!is_line_started) {
+            if (is_line_started) {
                 if (is_cell_on) {
-                    is_line_started = true;
-                    ++running_width;
+                    if (x > right) right = x;
                     continue;
                 } else {
+                    is_line_started = false;
                     continue;
                 }
             } else {
                 if (is_cell_on) {
-                    ++running_width;
+                    is_line_started = true;
+                    if (x < left) left = x;
                     continue;
                 } else {
-                    is_line_started = false;
-                    if (running_width > max_width) {
-                        max_width = running_width;
-                    }
                     continue;
                 }
             }
         }
-        if (running_width > max_width) {
-            max_width = running_width;
-        }
     }
 
-    return max_width;
+    return right - left + 1;
 }
 
 static int determineCurrentHeight(const std::vector<Cell>& shape)
 {
-    int max_height{-1};
-    int running_height{0};
+    size_t top{constants::shapeWidth};
+    size_t bottom{0};
     bool is_line_started{false};
     bool is_cell_on{false};
 
     for (size_t x{0}; x < constants::shapeWidth; ++x) {
-        running_height = 0;
         is_line_started = false;
         for (size_t y{0}; y < constants::shapeHeight; ++y) {
             is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            if (!is_line_started) {
+            if (is_line_started) {
                 if (is_cell_on) {
-                    is_line_started = true;
-                    ++running_height;
+                    if (x > bottom) bottom = x;
                     continue;
                 } else {
+                    is_line_started = false;
                     continue;
                 }
             } else {
                 if (is_cell_on) {
-                    ++running_height;
+                    is_line_started = true;
+                    if (x < top) top = x;
                     continue;
                 } else {
-                    is_line_started = false;
-                    if (running_height > max_height) {
-                        max_height = running_height;
-                    }
                     continue;
                 }
             }
         }
-        if (running_height > max_height) {
-            max_height = running_height;
-        }
     }
 
-    return max_height;
+    return bottom - top + 1;
 }
