@@ -25,9 +25,9 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
       grid{screen, colours::gridWalls},
       testTetro{screen,
                 grid,
-                {constants::gridWidth - 4, constants::gridHeight - 1},
-                colours::I_tetrominoCol,
-                constants::I_tetromino},
+                {(constants::gridWidth / 2) - 2, 0},
+                colours::S_tetrominoCol,
+                constants::S_tetromino},
       entities_{}
 {
     entities_.reserve(0xFF);

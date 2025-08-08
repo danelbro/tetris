@@ -1,6 +1,7 @@
 #include "Grid.h"
 
 #include "Cell.h"
+#include "Tetromino.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
@@ -27,6 +28,11 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
 }
 
 void Grid::update(double, double) {}
+
+void Grid::notifyBottomedTetromino([[maybe_unused]] Tetromino& tetromino)
+{
+    LOG("Tetromino hit bottom");
+}
 
 void Grid::render(utl::Renderer& renderer)
 {

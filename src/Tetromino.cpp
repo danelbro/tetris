@@ -10,41 +10,55 @@
 #include <utl_Vec2d.hpp>
 #include <vector>
 
-static int determineCurrentWidth(const std::vector<Cell>& shape);
-static int determineCurrentHeight(const std::vector<Cell>& shape);
+static int determineCurrentBounds(const std::vector<Cell>& shape,
+                                  bool wantWidth);
+static int determineOffset(const std::vector<Cell>& shape, bool wantX);
 
-Tetromino::Tetromino(utl::Box& screen, const Grid& grid,
-                     const GridPoint& grid_point, const utl::Colour& colour,
+Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
+                     const utl::Colour& colour,
                      const TetrominoShape& tetrominoShape)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::TETROMINO),
                   screen,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topleft_{grid_point},
-      shape{}, current_width{constants::shapeWidth},
-      current_height{constants::shapeHeight}, col{colour},
-      tickTime{constants::initialTickTime}, timeSinceTick{0.0}
+      shape{}, current_width{}, xOffset{}, current_height{}, yOffset{},
+      col{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0}
+{
+    init();
+}
+
+void Tetromino::init()
 {
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
-        shape.emplace_back(screen, colour);
+        shape.emplace_back(m_screenSpace, col);
     }
+    updateShapeBoundsAndOffsets();
+}
+
+void Tetromino::updateShapeBoundsAndOffsets()
+{
     readShape(tetrominoShape_);
+    current_width = determineCurrentBounds(shape, true);
+    xOffset = determineOffset(shape, true);
+    current_height = determineCurrentBounds(shape, false);
+    yOffset = determineOffset(shape, false);
 }
 
 void Tetromino::update(double, double dt)
 {
-    readShape(tetrominoShape_);
-    current_width = determineCurrentWidth(shape);
-    current_height = determineCurrentHeight(shape);
+    updateShapeBoundsAndOffsets();
+
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
         timeSinceTick = 0.0;
-        repositionInGridSpace(-1, -1);
+        repositionInGridSpace(0, 1);
     }
-    repositionInScreenSpace();
 }
 
 void Tetromino::render(utl::Renderer& renderer)
 {
+    repositionInScreenSpace();
+
     utl::Colour oldCol{utl::getRendererDrawColour(renderer)};
     utl::setRendererDrawColour(renderer, col);
     for (auto& cell : shape) {
@@ -71,21 +85,24 @@ void Tetromino::readShape(const TetrominoShape& tetrominoShape)
 void Tetromino::repositionInGridSpace(int x, int y)
 {
     if (x > 0) {
-        if (topleft_.x + current_width + x <= constants::gridWidth) {
+        if (topleft_.x + xOffset + current_width + x <= constants::gridWidth) {
             topleft_.x += x;
         }
     } else if (x < 0) {
-        if (topleft_.x + x >= 0) {
+        if (topleft_.x + xOffset + x >= 0) {
             topleft_.x += x;
         }
     }
 
     if (y > 0) {
-        if (topleft_.y + current_height + y <= constants::gridHeight) {
+        if (topleft_.y + +yOffset + current_height + y
+            <= constants::gridHeight) {
             topleft_.y += y;
+        } else {
+            grid_.notifyBottomedTetromino(*this);
         }
     } else if (y < 0) {
-        if (topleft_.y + y >= 0) {
+        if (topleft_.y + yOffset + y >= 0) {
             topleft_.y += y;
         }
     }
@@ -108,70 +125,83 @@ void Tetromino::repositionInScreenSpace()
     }
 }
 
-static int determineCurrentWidth(const std::vector<Cell>& shape)
+static int determineCurrentBounds(const std::vector<Cell>& shape,
+                                  bool wantWidth)
 {
-    size_t left{constants::shapeWidth};
-    size_t right{0};
-    bool is_line_started{false};
-    bool is_cell_on{false};
+    int lower{constants::shapeWidth};
+    int upper{-1};
 
     for (size_t y{0}; y < constants::shapeHeight; ++y) {
-        is_line_started = false;
+        bool is_line_started{false};
         for (size_t x{0}; x < constants::shapeWidth; ++x) {
-            is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            if (is_line_started) {
-                if (is_cell_on) {
-                    if (x > right) right = x;
-                    continue;
-                } else {
-                    is_line_started = false;
-                    continue;
-                }
-            } else {
-                if (is_cell_on) {
+            bool is_cell_on{};
+            if (wantWidth)
+                is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
+            else
+                is_cell_on = shape[y + x * constants::shapeWidth].renderMe();
+
+            if (is_cell_on) {
+                // NB this is not an if-else. If the line hasn't started, then
+                // we want to start it and pull the lower bound here if
+                // necessary. But that means the line *has now* started, and so
+                // we also want to push the greater bound here too if necessary
+                if (!is_line_started) {
                     is_line_started = true;
-                    if (x < left) left = x;
-                    continue;
-                } else {
-                    continue;
+                    if (static_cast<int>(x) < lower)
+                        lower = x;
                 }
-            }
+                if (is_line_started && static_cast<int>(x) > upper)
+                    upper = x;
+            } else if (is_line_started)
+                is_line_started = false;
         }
     }
 
-    return right - left + 1;
+    int extent{upper - lower + 1};
+    // #ifndef NDEBUG
+    //     if (wantWidth)
+    //         LOGF("current width: %d", extent);
+    //     else
+    //         LOGF("current height: %d", extent);
+    // #endif
+    return extent;
 }
 
-static int determineCurrentHeight(const std::vector<Cell>& shape)
+// determines how many empty rows there are in a shape's bounding box
+// from the left (if wantX) or the top (if !wantX)
+static int determineOffset(const std::vector<Cell>& shape, bool wantX)
 {
-    size_t top{constants::shapeWidth};
-    size_t bottom{0};
-    bool is_line_started{false};
-    bool is_cell_on{false};
+    int offset{0};
+    bool is_cell_on{};
 
     for (size_t x{0}; x < constants::shapeWidth; ++x) {
-        is_line_started = false;
+        bool maybe_offset{false};
         for (size_t y{0}; y < constants::shapeHeight; ++y) {
-            is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            if (is_line_started) {
-                if (is_cell_on) {
-                    if (x > bottom) bottom = x;
-                    continue;
-                } else {
-                    is_line_started = false;
-                    continue;
-                }
-            } else {
-                if (is_cell_on) {
-                    is_line_started = true;
-                    if (x < top) top = x;
-                    continue;
-                } else {
-                    continue;
-                }
+            if (wantX)
+                is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
+            else
+                is_cell_on = shape[y + x * constants::shapeHeight].renderMe();
+
+            if (is_cell_on) {
+                maybe_offset = false;
+                break;
             }
+
+            if (maybe_offset && y == constants::shapeHeight - 1)
+                ++offset;
+
+            maybe_offset = true;
         }
+        if (is_cell_on)
+            break;
     }
 
-    return bottom - top + 1;
+    // #ifndef NDEBUG
+    //     if (wantX)
+    //         LOGF("xOffset: %d", offset);
+    //     else
+    //         LOGF("yOffset: %d", offset);
+    // #endif
+
+    return offset;
 }

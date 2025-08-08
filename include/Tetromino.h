@@ -14,24 +14,28 @@
 
 class Tetromino : public utl::Entity {
 public:
-    Tetromino(utl::Box& screen, const Grid& grid, const GridPoint& grid_point,
+    Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
               const utl::Colour&, const TetrominoShape& tetrominoShape);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
 private:
+    void init();
     void readShape(const TetrominoShape& tetrominoShape);
+    void updateShapeBoundsAndOffsets();
 
     void repositionInGridSpace(int x, int y);
     void repositionInScreenSpace();
 
     const TetrominoShape& tetrominoShape_;
-    const Grid& grid_;
+    Grid& grid_;
     GridPoint topleft_;
     std::vector<Cell> shape;
     int current_width;
+    int xOffset;
     int current_height;
+    int yOffset;
     utl::Colour col;
     double tickTime;
     double timeSinceTick;

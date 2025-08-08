@@ -8,6 +8,8 @@
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 
+class Tetromino;
+
 class Grid : public utl::Entity {
 public:
     Grid(utl::Box& screen, const utl::Colour& colour);
@@ -18,6 +20,8 @@ public:
     Cell& get(unsigned x, unsigned y);
 
     const utl::Vec2d innerTopLeft;
+
+    void notifyBottomedTetromino(Tetromino& tetromino);
 
 private:
     void placeWalls();
