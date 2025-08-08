@@ -15,9 +15,9 @@ public:
     Cell(utl::Box& screen, int x, int y, int w, int h,
          const utl::Colour& colour);
     Cell(const Cell&);
-    Cell(Cell&&);
+    Cell(Cell&&) noexcept;
     Cell& operator=(const Cell&) = delete;
-    Cell& operator=(Cell&&);
+    Cell& operator=(Cell&&) noexcept;
 
     void update_rect(int x, int y, int w, int h);
     void set_pos(const utl::Vec2d& newPos);

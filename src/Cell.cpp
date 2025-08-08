@@ -37,19 +37,19 @@ Cell::Cell(const Cell& old)
     }
 }
 
-Cell::Cell(Cell&& old)
-    : utl::Entity{std::move(old.m_type), old.m_screenSpace,
-                  std::move(old.m_pos)},
+Cell::Cell(Cell&& old) noexcept
+    : utl::Entity{old.m_type, old.m_screenSpace,
+                  old.m_pos},
       rect{std::move(old.rect)}, col{std::move(old.col)},
       renderMe_{old.renderMe_}
 {}
 
-Cell& Cell::operator=(Cell&& old)
+Cell& Cell::operator=(Cell&& old) noexcept
 {
-    set_pos(std::move(old.pos()));
+    set_pos(old.pos());
     if (old.rect.get()) {
-        rect.reset(std::move(old.rect.x()), std::move(old.rect.y()),
-                   std::move(old.rect.w()), std::move(old.rect.h()));
+        rect.reset(old.rect.x(), old.rect.y(),
+                   old.rect.w(), old.rect.h());
     }
     col = std::move(old.col);
     renderMe_ = old.renderMe_;
