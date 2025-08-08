@@ -27,3 +27,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 	$<$<OR:${is_CC}>:-std=c++20>
 	$<$<OR:${is_CC}>:-Weffc++>
 	$<${is_MS}:/W4>)
+
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E copy_directory
+                       ${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/data/)
