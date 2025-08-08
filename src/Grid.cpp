@@ -61,20 +61,24 @@ void Grid::placeWalls()
             w = constants::gridWallThickness;
             h = (constants::gridWallThickness * 2)
                 + (constants::cellHeight * constants::gridHeight);
-            x = pos().x
-                + (i * (constants::cellWidth * constants::gridWidth) / 2.0)
-                + (i * (constants::gridWallThickness / 2.0));
-            y = pos().y;
+            x = static_cast<int>(pos().x)
+                + (static_cast<int>(i)
+                    * (constants::cellWidth * constants::gridWidth) / 2)
+                + (static_cast<int>(i)
+                    * (constants::gridWallThickness / 2));
+            y = static_cast<int>(pos().y);
         } else {
             // top and bottom
             w = (constants::gridWallThickness * 2)
                 + (constants::cellWidth * constants::gridWidth);
             h = constants::gridWallThickness;
-            x = pos().x;
-            y = pos().y
-                + ((i - 1)
-                   * (constants::cellHeight * (constants::gridHeight / 2.0)))
-                + (i - 1) * (constants::gridWallThickness / 2.0);
+
+            x = static_cast<int>(pos().x);
+            y = static_cast<int>(pos().y)
+                + ((static_cast<int>(i) - 1)
+                   * (constants::cellHeight * (constants::gridHeight / 2)))
+                + (static_cast<int>(i) - 1)
+                * (constants::gridWallThickness / 2);
         }
         walls[i] = utl::Rect{x, y, w, h};
     }

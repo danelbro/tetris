@@ -148,10 +148,10 @@ static int determineCurrentBounds(const std::vector<Cell>& shape,
                 if (!is_line_started) {
                     is_line_started = true;
                     if (static_cast<int>(x) < lower)
-                        lower = x;
+                        lower = static_cast<int>(x);
                 }
                 if (is_line_started && static_cast<int>(x) > upper)
-                    upper = x;
+                    upper = static_cast<int>(x);
             } else if (is_line_started)
                 is_line_started = false;
         }

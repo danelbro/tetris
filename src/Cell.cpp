@@ -59,13 +59,15 @@ Cell& Cell::operator=(Cell&& old)
 
 void Cell::update_rect(int x, int y, int w, int h)
 {
-    rect.reset(x, y, w, h);
+    rect.reset(static_cast<float>(x), static_cast<float>(y),
+        static_cast<float>(w), static_cast<float>(h));
 }
 
 void Cell::set_pos(const utl::Vec2d& newPos)
 {
     m_pos = newPos;
-    update_rect(m_pos.x, m_pos.y, constants::cellWidth, constants::cellHeight);
+    update_rect(static_cast<int>(m_pos.x), static_cast<int>(m_pos.y),
+        constants::cellWidth, constants::cellHeight);
 }
 
 void Cell::update(double, double) {}
