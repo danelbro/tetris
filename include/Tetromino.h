@@ -20,6 +20,9 @@ public:
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
+    void move();
+    void rotate();
+
 private:
     void init();
     void readShape(const TetrominoShape& tetrominoShape);
