@@ -20,13 +20,20 @@ target_link_options(tetris PRIVATE $<$<AND:$<PLATFORM_ID:Windows>,$<CONFIG:Relea
 set(is_CC "$<CXX_COMPILER_ID:Clang,AppleClang,GNU>")
 set(is_MS "$<CXX_COMPILER_ID:MSVC>")
 target_compile_options(${PROJECT_NAME} PRIVATE
-	$<$<OR:${is_CC}>:-Wall>
-	$<$<OR:${is_CC}>:-Wextra>
-	$<$<OR:${is_CC}>:-Wsign-conversion>
 	$<$<OR:${is_CC}>:-pedantic>
-	$<$<OR:${is_CC}>:-std=c++20>
+	$<$<OR:${is_CC}>:-pedantic-errors>
+	$<$<OR:${is_CC}>:-Wall>
 	$<$<OR:${is_CC}>:-Weffc++>
-	$<${is_MS}:/W4>)
+	$<$<OR:${is_CC}>:-Wextra>
+	$<$<OR:${is_CC}>:-Wconversion>
+	$<$<OR:${is_CC}>:-Wsign-conversion>
+	$<$<OR:${is_CC}>:-Werror>
+	$<$<OR:${is_CC}>:-std=c++20>
+	$<${is_MS}:/W4>
+	$<${is_MS}:/permissive->
+	$<${is_MS}:/w44365>
+	$<${is_MS}:/external:W3>
+    )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
