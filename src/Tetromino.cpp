@@ -22,7 +22,8 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topleft_{grid_point},
       shape{}, current_width{}, xOffset{}, current_height{}, yOffset{},
-      col{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0}
+      col{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0},
+      xThisFrame{0}, yThisFrame{0}, maxXPerSecond{1}, maxYPerSecond{1}
 {
     init();
 }
@@ -30,7 +31,7 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
 void Tetromino::init()
 {
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
-        shape.emplace_back(m_screenSpace, col);
+        shape.emplace_back(m_screenSpace, col, grid_);
     }
     updateShapeBoundsAndOffsets();
 }
@@ -51,7 +52,10 @@ void Tetromino::update(double, double dt)
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
         timeSinceTick = 0.0;
-        repositionInGridSpace(0, 1);
+        yThisFrame++;
+        repositionInGridSpace(xThisFrame, yThisFrame);
+        xThisFrame = 0;
+        yThisFrame = 0;
     }
 }
 
@@ -110,14 +114,16 @@ void Tetromino::repositionInGridSpace(int x, int y)
 
 void Tetromino::repositionInScreenSpace()
 {
-    m_pos.x = grid_.innerTopLeft.x + (topleft_.x * constants::cellWidth);
-    m_pos.y = grid_.innerTopLeft.y + (topleft_.y * constants::cellHeight);
+    m_pos.x = grid_.innerTopLeftPt.x
+              + static_cast<double>(topleft_.x * constants::cellWidth);
+    m_pos.y = grid_.innerTopLeftPt.y
+              + static_cast<double>(topleft_.y * constants::cellHeight);
 
     for (size_t i{0}; i < shape.size(); ++i) {
-        size_t x{i % constants::shapeWidth};
-        size_t y{i / constants::shapeHeight};
-        int newX{static_cast<int>(m_pos.x + constants::cellWidth * x)};
-        int newY{static_cast<int>(m_pos.y + constants::cellHeight * y)};
+        int x{static_cast<int>(i % constants::shapeWidth)};
+        int y{static_cast<int>(i / constants::shapeHeight)};
+        int newX{static_cast<int>(m_pos.x) + constants::cellWidth * x};
+        int newY{static_cast<int>(m_pos.y) + constants::cellHeight * y};
         // LOGF("Tetromino Cell Xpos: %d", newX);
         // LOGF("Tetromino Cell Ypos: %d\n", newY);
         shape[i].update_rect(newX, newY, constants::cellWidth,
@@ -204,4 +210,25 @@ static int determineOffset(const std::vector<Cell>& shape, bool wantX)
     // #endif
 
     return offset;
+}
+
+void Tetromino::move(int dir)
+{
+    if (xThisFrame >= maxXPerSecond)
+        return;
+
+    xThisFrame += dir;
+}
+
+void Tetromino::rotate(int dir)
+{
+    LOGF("Rotating tetromino %d", dir);
+}
+
+void Tetromino::soft_drop()
+{
+    if (yThisFrame >= maxYPerSecond)
+        return;
+
+    yThisFrame++;
 }

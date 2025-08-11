@@ -20,8 +20,9 @@ public:
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
-    void move();
-    void rotate();
+    void move(int dir);
+    void rotate(int dir);
+    void soft_drop();
 
 private:
     void init();
@@ -42,4 +43,8 @@ private:
     utl::Colour col;
     double tickTime;
     double timeSinceTick;
+    int xThisFrame;
+    int yThisFrame;
+    int maxXPerSecond;
+    int maxYPerSecond;
 };

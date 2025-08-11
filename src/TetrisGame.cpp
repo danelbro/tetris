@@ -39,9 +39,21 @@ TetrisGame::handle_input(double, double,
 {
     utl::process_input(screen(), windowID(), keyState);
 
-    if (keyState.at(utl::KeyFlag::QUIT) || keyState.at(utl::KeyFlag::K_ESCAPE)
-        || keyState.at(utl::KeyFlag::K_ENTER)) {
+    if (keyState.at(utl::KeyFlag::QUIT)
+        || keyState.at(utl::KeyFlag::K_ESCAPE)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
+    }
+    if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
+        testTetro.rotate(1);
+    } else if (keyState.at(utl::KeyFlag::K_LCTRL)
+               || keyState.at(utl::KeyFlag::K_Z)) {
+        testTetro.rotate(-1);
+    } else if (keyState.at(utl::KeyFlag::K_LEFT)) {
+        testTetro.move(-1);
+    } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
+        testTetro.move(1);
+    } else if (keyState.at(utl::KeyFlag::K_DOWN)) {
+        testTetro.soft_drop();
     }
 
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);

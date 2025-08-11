@@ -15,12 +15,12 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
-      innerTopLeft{constants::gridPosX + constants::gridWallThickness,
-                   constants::gridPosY + constants::gridWallThickness},
+      innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
+                     constants::gridPosY + constants::gridWallThickness},
       walls{}, grid{}, col{colour}
 {
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
-        grid.emplace_back(screen);
+        grid.emplace_back(screen, *this);
     }
     placeWalls();
     placeBGCells();
@@ -63,9 +63,8 @@ void Grid::placeWalls()
                 + (constants::cellHeight * constants::gridHeight);
             x = static_cast<int>(pos().x)
                 + (static_cast<int>(i)
-                    * (constants::cellWidth * constants::gridWidth) / 2)
-                + (static_cast<int>(i)
-                    * (constants::gridWallThickness / 2));
+                   * (constants::cellWidth * constants::gridWidth) / 2)
+                + (static_cast<int>(i) * (constants::gridWallThickness / 2));
             y = static_cast<int>(pos().y);
         } else {
             // top and bottom
@@ -78,7 +77,7 @@ void Grid::placeWalls()
                 + ((static_cast<int>(i) - 1)
                    * (constants::cellHeight * (constants::gridHeight / 2)))
                 + (static_cast<int>(i) - 1)
-                * (constants::gridWallThickness / 2);
+                      * (constants::gridWallThickness / 2);
         }
         walls[i] = utl::Rect{x, y, w, h};
     }
@@ -92,8 +91,8 @@ void Grid::placeBGCells()
     for (size_t y{0}; y < constants::gridHeight; ++y) {
         for (size_t x{0}; x < constants::gridWidth; ++x) {
             grid[x + y * constants::gridWidth].set_pos(
-                {base_pos.x + (x * constants::cellWidth),
-                 base_pos.y + (y * constants::cellHeight)});
+                {base_pos.x + static_cast<double>(x * constants::cellWidth),
+                 base_pos.y + static_cast<double>(y * constants::cellHeight)});
         }
     }
 }
