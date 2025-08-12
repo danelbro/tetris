@@ -49,5 +49,14 @@ private:
     utl::Colour col_;
     double tickTime;
     double timeSinceTick;
+    double rotationTimer;
+    double rotationLengthInSecs;
+    double moveTimer;
+    double moveLengthInSecs;
+    double dropTimer;
+    double dropLengthInSecs;
+    bool isRotating;
+    bool isMoving;
+    bool isDropping;
     size_t currentRotation_;
 };

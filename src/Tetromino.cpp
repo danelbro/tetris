@@ -21,8 +21,13 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   screen,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topLeft_{grid_point},
-      shape_{}, col_{colour}, tickTime{constants::initialTickTime},
-      timeSinceTick{0.0}, currentRotation_{0}
+      shape_{}, col_{colour},
+      tickTime{constants::initialTickTime}, timeSinceTick{0.0},
+      rotationTimer{0.0}, rotationLengthInSecs{0.09},
+      moveTimer{0.0}, moveLengthInSecs{0.08},
+      dropTimer{0.0}, dropLengthInSecs{0.05},
+      isRotating{false}, isMoving{false}, isDropping{false},
+      currentRotation_{0}
 {
     init();
 }
@@ -39,6 +44,33 @@ void Tetromino::init()
 void Tetromino::update(double, double dt)
 {
     readShape();
+
+    if (isRotating) {
+        if (rotationTimer < rotationLengthInSecs)
+            rotationTimer += dt;
+        else {
+            rotationTimer = 0.0;
+            isRotating = false;
+        }
+    }
+
+    if (isMoving) {
+        if (moveTimer < moveLengthInSecs)
+            moveTimer += dt;
+        else {
+            moveTimer = 0.0;
+            isMoving = false;
+        }
+    }
+
+    if (isDropping) {
+        if (dropTimer < dropLengthInSecs)
+            dropTimer += dt;
+        else {
+            dropTimer = 0.0;
+            isDropping = false;
+        }
+    }
 
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
@@ -134,8 +166,6 @@ void Tetromino::repositionInScreenSpace()
         int y{static_cast<int>(i / constants::shapeHeight)};
         int newX{static_cast<int>(m_pos.x) + constants::cellWidth * x};
         int newY{static_cast<int>(m_pos.y) + constants::cellHeight * y};
-        // LOGF("Tetromino Cell Xpos: %d", newX);
-        // LOGF("Tetromino Cell Ypos: %d\n", newY);
         shape_[i].update_rect(newX, newY, constants::cellWidth,
                              constants::cellHeight);
     }
@@ -144,18 +174,32 @@ void Tetromino::repositionInScreenSpace()
 
 void Tetromino::move(int dir)
 {
+    if (isMoving) return;
+
     repositionInGridSpace(dir, 0);
+
+    isMoving = true;
 }
 
 void Tetromino::rotate(int dir)
 {
-    currentRotation_ = (currentRotation_ + dir + constants::rotations)
-        % constants::rotations;
+    if (isRotating) return;
+
+    size_t new_rotation{ (currentRotation_ + dir + constants::rotations)
+        % constants::rotations };
+
+    currentRotation_ = new_rotation;
+
+    isRotating = true;
 }
 
 void Tetromino::soft_drop()
 {
+    if (isDropping) return;
+
     repositionInGridSpace(0, 1);
+
+    isDropping = true;
 }
 
 void Tetromino::reset(const TetrominoShape& newShape)
