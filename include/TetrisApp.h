@@ -14,7 +14,7 @@ public:
     TetrisApp();
     ~TetrisApp();
 
-    /// Decides which Stage to add to the StageMnager next
+    /// Decides which Stage to add to the StageManager next
     /// @param newStage Label of the string to change to.
     void trigger_stage_change(const std::string& newStage) override;
 };
