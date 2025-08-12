@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <array>
+#include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <utl_SDLInterface.hpp>
@@ -11,13 +11,9 @@
 namespace constants {
 inline constexpr int shapeWidth{4};
 inline constexpr int shapeHeight{4};
-}  // namespace constants
 
-struct TetrominoShape {
-    std::array<int, constants::shapeWidth * constants::shapeHeight> shape;
-};
-
-namespace constants {
+inline constexpr size_t minos{4};
+inline constexpr size_t rotations{4};
 
 inline const std::string tetrisTitle{"Tetris"};
 inline const std::string tetrisVersion{"0.0.1"};
@@ -35,50 +31,6 @@ inline constexpr int32_t instructionsFontSize{48};
 
 inline constexpr int cellWidth{32};
 inline constexpr int cellHeight{32};
-
-// clang-format off
-inline const TetrominoShape I_tetromino{
-    false, false, false, false,
-    true,  true,  true,  true,
-    false, false, false, false,
-    false, false, false, false};
-
-inline const TetrominoShape O_tetromino{
-    false, false, false, false,
-    false, true,  true,  false,
-    false, true,  true,  false,
-    false, false, false, false};
-
-inline const TetrominoShape T_tetromino{
-    false, true,  false, false,
-    true,  true,  true,  false,
-    false, false, false, false,
-    false, false, false, false};
-
-inline const TetrominoShape J_tetromino{
-    true,  false, false, false,
-    true,  true,  true,  false,
-    false, false, false, false,
-    false, false, false, false};
-
-inline const TetrominoShape L_tetromino{
-    false, false, true,  false,
-    true,  true,  true,  false,
-    false, false, false, false,
-    false, false, false, false};
-
-inline const TetrominoShape S_tetromino{
-    false, true,  true,  false,
-    true,  true,  false, false,
-    false, false, false, false,
-    false, false, false, false};
-
-inline const TetrominoShape Z_tetromino{
-    true,  true,  false, false,
-    false, true,  true,  false,
-    false, false, false, false,
-    false, false, false, false};
-// clang-format on
 
 inline constexpr int gridWidth{10};
 inline constexpr int gridHeight{20};

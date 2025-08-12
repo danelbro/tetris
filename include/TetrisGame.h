@@ -3,6 +3,7 @@
 
 #include "Grid.h"
 #include "Tetromino.h"
+#include "TetrominoShape.h"
 
 #include <array>
 #include <memory>
@@ -25,4 +26,5 @@ private:
     Grid grid;
     Tetromino testTetro;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
+    const TetrominoShape I_tetromino;
 };
