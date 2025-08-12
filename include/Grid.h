@@ -3,11 +3,11 @@
 #include "Cell.h"
 #include "constants.h"
 
+#include "utl_Vec2d.hpp"
 #include <array>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
-#include "utl_Vec2d.hpp"
 
 class Tetromino;
 class TetrisGame;

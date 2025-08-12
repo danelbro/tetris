@@ -21,13 +21,11 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   screen,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topLeft_{grid_point},
-      shape_{}, col_{colour},
-      tickTime{constants::initialTickTime}, timeSinceTick{0.0},
-      rotationTimer{0.0}, rotationLengthInSecs{0.09},
-      moveTimer{0.0}, moveLengthInSecs{0.08},
-      dropTimer{0.0}, dropLengthInSecs{0.05},
-      isRotating{false}, isMoving{false}, isDropping{false},
-      currentRotation_{0}
+      shape_{}, col_{colour}, tickTime{constants::initialTickTime},
+      timeSinceTick{0.0}, rotationTimer{0.0}, rotationLengthInSecs{0.09},
+      moveTimer{0.0}, moveLengthInSecs{0.08}, dropTimer{0.0},
+      dropLengthInSecs{0.05}, isRotating{false}, isMoving{false},
+      isDropping{false}, currentRotation_{0}
 {
     init();
 }
@@ -95,17 +93,14 @@ void Tetromino::render(utl::Renderer& renderer)
 
 void Tetromino::readShape()
 {
-    for (auto& cell : shape_)
-        cell.stopRendering();
+    for (auto& cell : shape_) cell.stopRendering();
 
     auto& current_shape{
-        tetrominoShape_.at(static_cast<size_t>(currentRotation_))
-    };
+        tetrominoShape_.at(static_cast<size_t>(currentRotation_))};
 
     for (const auto& cell : current_shape) {
-        shape_[
-            static_cast<size_t>(
-                cell.x + cell.y * constants::shapeWidth)].makeRender();
+        shape_[static_cast<size_t>(cell.x + cell.y * constants::shapeWidth)]
+            .makeRender();
     }
 }
 
@@ -113,44 +108,57 @@ void Tetromino::repositionInGridSpace(int x, int y)
 {
     // we start by assuming that the tetromino can move anywhere, and if any of
     // the conditions are broken we change that
-    bool canMoveRight{ true }, canMoveLeft{ true },
-        canMoveDown{ true }, canMoveUp{ true };
+    bool canMoveRight{true}, canMoveLeft{true}, canMoveDown{true},
+        canMoveUp{true};
 
     if (x > 0) {
         for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.x + cell.x + x >= constants::gridWidth ||
-                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x + x),
-                    static_cast<size_t>(topLeft_.y + cell.y)).isOpen())
+            if (topLeft_.x + cell.x + x >= constants::gridWidth
+                || !grid_
+                        .get(static_cast<unsigned>(topLeft_.x + cell.x + x),
+                             static_cast<unsigned>(topLeft_.y + cell.y))
+                        .isOpen())
                 canMoveRight = false;
         }
-        if (canMoveRight) topLeft_.x += x;
+        if (canMoveRight)
+            topLeft_.x += x;
     } else if (x < 0) {
         for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.x + cell.x + x < 0 ||
-                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x + x),
-                    static_cast<size_t>(topLeft_.y + cell.y)).isOpen())
+            if (topLeft_.x + cell.x + x < 0
+                || !grid_
+                        .get(static_cast<unsigned>(topLeft_.x + cell.x + x),
+                             static_cast<unsigned>(topLeft_.y + cell.y))
+                        .isOpen())
                 canMoveLeft = false;
         }
-        if (canMoveLeft) topLeft_.x += x;
+        if (canMoveLeft)
+            topLeft_.x += x;
     }
 
     if (y > 0) {
         for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.y + cell.y + y >= constants::gridHeight ||
-                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x),
-                    static_cast<size_t>(topLeft_.y + cell.y + y)).isOpen())
+            if (topLeft_.y + cell.y + y >= constants::gridHeight
+                || !grid_
+                        .get(static_cast<unsigned>(topLeft_.x + cell.x),
+                             static_cast<unsigned>(topLeft_.y + cell.y + y))
+                        .isOpen())
                 canMoveDown = false;
         }
-        if (canMoveDown) topLeft_.y += y;
-        else grid_.bakeActiveTetromino(*this);
-    } else if (y < 0) {    // just for completeness
+        if (canMoveDown)
+            topLeft_.y += y;
+        else
+            grid_.bakeActiveTetromino(*this);
+    } else if (y < 0) {  // just for completeness
         for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.y + cell.y + y < 0 ||
-                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x),
-                    static_cast<size_t>(topLeft_.y + cell.y + y)).isOpen())
+            if (topLeft_.y + cell.y + y < 0
+                || !grid_
+                        .get(static_cast<unsigned>(topLeft_.x + cell.x),
+                             static_cast<unsigned>(topLeft_.y + cell.y + y))
+                        .isOpen())
                 canMoveUp = false;
         }
-        if (canMoveUp) topLeft_.y += y;
+        if (canMoveUp)
+            topLeft_.y += y;
     }
 }
 
@@ -167,14 +175,14 @@ void Tetromino::repositionInScreenSpace()
         int newX{static_cast<int>(m_pos.x) + constants::cellWidth * x};
         int newY{static_cast<int>(m_pos.y) + constants::cellHeight * y};
         shape_[i].update_rect(newX, newY, constants::cellWidth,
-                             constants::cellHeight);
+                              constants::cellHeight);
     }
 }
 
-
 void Tetromino::move(int dir)
 {
-    if (isMoving) return;
+    if (isMoving)
+        return;
 
     repositionInGridSpace(dir, 0);
 
@@ -183,10 +191,13 @@ void Tetromino::move(int dir)
 
 void Tetromino::rotate(int dir)
 {
-    if (isRotating) return;
+    if (isRotating)
+        return;
 
-    size_t new_rotation{ (currentRotation_ + dir + constants::rotations)
-        % constants::rotations };
+    size_t new_rotation{
+        static_cast<size_t>((static_cast<int>(currentRotation_) + dir
+                             + static_cast<int>(constants::rotations))
+                            % static_cast<int>(constants::rotations))};
 
     currentRotation_ = new_rotation;
 
@@ -195,7 +206,8 @@ void Tetromino::rotate(int dir)
 
 void Tetromino::soft_drop()
 {
-    if (isDropping) return;
+    if (isDropping)
+        return;
 
     repositionInGridSpace(0, 1);
 
@@ -206,7 +218,7 @@ void Tetromino::reset(const TetrominoShape& newShape)
 {
     shape_.clear();
 
-    topLeft_ = { constants::gridWidth / 2 - 2, 0 };
+    topLeft_ = {constants::gridWidth / 2 - 2, 0};
     tetrominoShape_ = newShape;
     col_ = determineColour(tetrominoShape_);
     currentRotation_ = 0;
@@ -231,7 +243,7 @@ static const utl::Colour& determineColour(const TetrominoShape& shape)
         return colours::S_tetrominoCol;
     case 'Z':
         return colours::Z_tetrominoCol;
-    default:    // shouldn't get here - return an "error" colour
+    default:  // shouldn't get here - return an "error" colour
         return colours::instructionsText;
     }
 }

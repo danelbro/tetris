@@ -10,6 +10,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
+#include <random>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
@@ -21,19 +22,18 @@ static const utl::Vec2d newpos{
 
 void TetrisGame::fillShapeQueue()
 {
-    while (upcomingShapes_.size() < constants::shapeQueueMax)
-    {
+    while (upcomingShapes_.size() < constants::shapeQueueMax) {
         upcomingShapes_.emplace(getRandomShape());
     }
 }
 
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
-    utl::Renderer& renderer)
-    : utl::Stage{ screen, windowID, renderer,
-                 flags::STAGES_MAP.at(flags::STAGES::TETRIS) },
-    grid{ screen, *this, colours::gridWalls },
-    activeTetro{ screen, grid, {}, colours::gridBG, I_tetromino},
-    entities_{}, possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}
+                       utl::Renderer& renderer)
+    : utl::Stage{screen, windowID, renderer,
+                 flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
+      grid{screen, *this, colours::gridWalls},
+      activeTetro{screen, grid, {}, colours::gridBG, I_tetromino}, entities_{},
+      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -47,10 +47,9 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
     possibleShapes_.emplace_back(Z_tetromino);
 
     std::random_device dev;
-    rng.seed(dev());
-    tetroDist.param(
-        std::uniform_int_distribution<unsigned int>::param_type{
-            0, constants::tetrominoes - 1 });
+    rng = std::mt19937{dev()};
+    tetroDist =
+        std::uniform_int_distribution<size_t>{0, constants::tetrominoes - 1};
 
     fillShapeQueue();
     resetActiveTetro();
@@ -108,7 +107,7 @@ void TetrisGame::render(double, double)
 
 void TetrisGame::resetActiveTetro()
 {
-    const TetrominoShape& newShape{ upcomingShapes_.front() };
+    const TetrominoShape& newShape{upcomingShapes_.front()};
     upcomingShapes_.pop();
 
     activeTetro.reset(newShape);

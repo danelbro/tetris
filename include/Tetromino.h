@@ -8,12 +8,9 @@
 #include "Grid.h"
 #include "GridPoint.h"
 #include "TetrominoShape.h"
-#include "constants.h"
 
-#include <array>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
-
 
 class Tetromino : public utl::Entity {
 public:

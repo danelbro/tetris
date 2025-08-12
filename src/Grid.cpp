@@ -1,8 +1,8 @@
 #include "Grid.h"
 
 #include "Cell.h"
-#include "Tetromino.h"
 #include "TetrisGame.h"
+#include "Tetromino.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
@@ -18,8 +18,7 @@ Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
                   {constants::gridPosX, constants::gridPosY}},
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
-      tetrisGame_{tetrisGame},
-      walls{}, grid{}, col{colour}
+      tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour}
 {
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
         grid.emplace_back(screen, *this);
@@ -33,13 +32,13 @@ void Grid::update(double, double) {}
 
 void Grid::bakeActiveTetromino(const Tetromino& tetromino)
 {
-    const auto& newColour{ tetromino.colour() };
+    const auto& newColour{tetromino.colour()};
 
-    for (const GridPoint& cell : tetromino.shape().at(tetromino.currentRotation())) {
-        Cell& gridCell{
-            grid[static_cast<size_t>(
-                (cell.x + tetromino.topLeft().x)
-                + (cell.y + tetromino.topLeft().y) * constants::gridWidth)] };
+    for (const GridPoint& cell :
+         tetromino.shape().at(tetromino.currentRotation())) {
+        Cell& gridCell{grid[static_cast<size_t>(
+            (cell.x + tetromino.topLeft().x)
+            + (cell.y + tetromino.topLeft().y) * constants::gridWidth)]};
         gridCell.setColour(newColour);
         gridCell.close();
     }
