@@ -23,7 +23,7 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
-      grid{screen, colours::gridWalls},
+      grid{screen, *this, colours::gridWalls},
       activeTetro{screen,
                 grid,
                 {(constants::gridWidth / 2) - 2, 0},
@@ -79,4 +79,16 @@ void TetrisGame::render(double, double)
         entity->render(renderer());
     }
     utl::presentRenderer(renderer());
+}
+
+void TetrisGame::resetActiveTetro()
+{
+    const TetrominoShape& newShape{ getRandomShape() };
+
+    activeTetro.reset(newShape);
+}
+
+const TetrominoShape& TetrisGame::getRandomShape()
+{
+    return S_tetromino;
 }

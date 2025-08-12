@@ -40,6 +40,10 @@ public:
     const utl::Colour& colour() const { return col; }
 
     bool renderMe() const { return renderMe_; }
+    bool isOpen() const { return isOpen_; }
+
+    void open() { isOpen_ = true; }
+    void close() { isOpen_ = false; }
 
     const GridPoint& coord() const { return coord_; }
 
@@ -54,4 +58,5 @@ private:
     bool renderMe_;
     Grid& grid_;
     GridPoint coord_;
+    bool isOpen_;
 };

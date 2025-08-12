@@ -2,6 +2,7 @@
 
 #include "Cell.h"
 #include "Tetromino.h"
+#include "TetrisGame.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
@@ -11,12 +12,13 @@
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 
-Grid::Grid(utl::Box& screen, const utl::Colour& colour)
+Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
+      tetrisGame_{tetrisGame},
       walls{}, grid{}, col{colour}
 {
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
@@ -29,9 +31,20 @@ Grid::Grid(utl::Box& screen, const utl::Colour& colour)
 
 void Grid::update(double, double) {}
 
-void Grid::notifyBottomedTetromino([[maybe_unused]] Tetromino& tetromino)
+void Grid::bakeActiveTetromino(const Tetromino& tetromino)
 {
-    LOG("Tetromino hit bottom");
+    const auto& newColour{ tetromino.colour() };
+
+    for (const GridPoint& cell : tetromino.shape().at(tetromino.currentRotation())) {
+        Cell& gridCell{
+            grid[static_cast<size_t>(
+                (cell.x + tetromino.topLeft().x)
+                + (cell.y + tetromino.topLeft().y) * constants::gridWidth)] };
+        gridCell.setColour(newColour);
+        gridCell.close();
+    }
+
+    tetrisGame_.resetActiveTetro();
 }
 
 void Grid::render(utl::Renderer& renderer)

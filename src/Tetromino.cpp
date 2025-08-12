@@ -22,9 +22,9 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   screen,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topleft_{grid_point},
-      shape{}, current_width{}, xOffset{}, current_height{}, yOffset{},
-      col{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0},
-      currentRotation{0}
+      shape_{}, current_width{}, xOffset{}, current_height{}, yOffset{},
+      col_{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0},
+      currentRotation_{0}
 {
     init();
 }
@@ -32,7 +32,7 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
 void Tetromino::init()
 {
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
-        shape.emplace_back(m_screenSpace, col, grid_);
+        shape_.emplace_back(m_screenSpace, col_, grid_);
     }
     updateShapeBoundsAndOffsets();
 }
@@ -40,10 +40,10 @@ void Tetromino::init()
 void Tetromino::updateShapeBoundsAndOffsets()
 {
     readShape();
-    current_width = determineCurrentBounds(shape, true);
-    xOffset = determineOffset(shape, true);
-    current_height = determineCurrentBounds(shape, false);
-    yOffset = determineOffset(shape, false);
+    current_width = determineCurrentBounds(shape_, true);
+    xOffset = determineOffset(shape_, true);
+    current_height = determineCurrentBounds(shape_, false);
+    yOffset = determineOffset(shape_, false);
 }
 
 void Tetromino::update(double, double dt)
@@ -62,8 +62,8 @@ void Tetromino::render(utl::Renderer& renderer)
     repositionInScreenSpace();
 
     utl::Colour oldCol{utl::getRendererDrawColour(renderer)};
-    utl::setRendererDrawColour(renderer, col);
-    for (auto& cell : shape) {
+    utl::setRendererDrawColour(renderer, col_);
+    for (auto& cell : shape_) {
         if (cell.renderMe()) {
             cell.render(renderer);
         }
@@ -73,15 +73,15 @@ void Tetromino::render(utl::Renderer& renderer)
 
 void Tetromino::readShape()
 {
-    for (auto& cell : shape)
+    for (auto& cell : shape_)
         cell.stopRendering();
 
     auto& current_shape{
-        tetrominoShape_.at(static_cast<size_t>(currentRotation))
+        tetrominoShape_.at(static_cast<size_t>(currentRotation_))
     };
 
     for (const auto& cell : current_shape) {
-        shape[
+        shape_[
             static_cast<size_t>(
                 cell.x + cell.y * constants::shapeWidth)].makeRender();
     }
@@ -104,7 +104,7 @@ void Tetromino::repositionInGridSpace(int x, int y)
             <= constants::gridHeight) {
             topleft_.y += y;
         } else {
-            grid_.notifyBottomedTetromino(*this);
+            grid_.bakeActiveTetromino(*this);
         }
     } else if (y < 0) {
         if (topleft_.y + yOffset + y >= 0) {
@@ -120,14 +120,14 @@ void Tetromino::repositionInScreenSpace()
     m_pos.y = grid_.innerTopLeftPt.y
               + static_cast<double>(topleft_.y * constants::cellHeight);
 
-    for (size_t i{0}; i < shape.size(); ++i) {
+    for (size_t i{0}; i < shape_.size(); ++i) {
         int x{static_cast<int>(i % constants::shapeWidth)};
         int y{static_cast<int>(i / constants::shapeHeight)};
         int newX{static_cast<int>(m_pos.x) + constants::cellWidth * x};
         int newY{static_cast<int>(m_pos.y) + constants::cellHeight * y};
         // LOGF("Tetromino Cell Xpos: %d", newX);
         // LOGF("Tetromino Cell Ypos: %d\n", newY);
-        shape[i].update_rect(newX, newY, constants::cellWidth,
+        shape_[i].update_rect(newX, newY, constants::cellWidth,
                              constants::cellHeight);
     }
 }
@@ -220,11 +220,20 @@ void Tetromino::move(int dir)
 
 void Tetromino::rotate(int dir)
 {
-    currentRotation = (currentRotation + dir + constants::rotations)
+    currentRotation_ = (currentRotation_ + dir + constants::rotations)
         % constants::rotations;
 }
 
 void Tetromino::soft_drop()
 {
     repositionInGridSpace(0, 1);
+}
+
+void Tetromino::reset(const TetrominoShape& newShape)
+{
+    topleft_ = { constants::gridWidth / 2 - 2, 0 };
+    tetrominoShape_ = newShape;
+
+    shape_.clear();
+    init();
 }

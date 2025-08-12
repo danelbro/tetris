@@ -22,7 +22,11 @@ public:
     std::string update(double t, double dt);
     void render(double t, double dt);
 
+    void resetActiveTetro();
+
 private:
+    const TetrominoShape& getRandomShape();
+
     Grid grid;
     Tetromino activeTetro;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
