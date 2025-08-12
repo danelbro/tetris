@@ -14,6 +14,10 @@ inline constexpr int shapeHeight{4};
 
 inline constexpr size_t minos{4};
 inline constexpr size_t rotations{4};
+inline constexpr size_t tetrominoes{7};
+
+inline constexpr size_t shapeQueueMin{2};
+inline constexpr size_t shapeQueueMax{10};
 
 inline const std::string tetrisTitle{"Tetris"};
 inline const std::string tetrisVersion{"0.0.1"};

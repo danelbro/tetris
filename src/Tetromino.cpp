@@ -3,6 +3,7 @@
 #include "Cell.h"
 #include "GridPoint.h"
 #include "TetrominoShape.h"
+#include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -11,9 +12,7 @@
 #include <utl_Vec2d.hpp>
 #include <vector>
 
-static int determineCurrentBounds(const std::vector<Cell>& shape,
-                                  bool wantWidth);
-static int determineOffset(const std::vector<Cell>& shape, bool wantX);
+static const utl::Colour& determineColour(const TetrominoShape&);
 
 Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                      const utl::Colour& colour,
@@ -21,10 +20,9 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::TETROMINO),
                   screen,
                   {}},
-      tetrominoShape_{tetrominoShape}, grid_{grid}, topleft_{grid_point},
-      shape_{}, current_width{}, xOffset{}, current_height{}, yOffset{},
-      col_{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0},
-      currentRotation_{0}
+      tetrominoShape_{tetrominoShape}, grid_{grid}, topLeft_{grid_point},
+      shape_{}, col_{colour}, tickTime{constants::initialTickTime},
+      timeSinceTick{0.0}, currentRotation_{0}
 {
     init();
 }
@@ -34,21 +32,13 @@ void Tetromino::init()
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
         shape_.emplace_back(m_screenSpace, col_, grid_);
     }
-    updateShapeBoundsAndOffsets();
-}
 
-void Tetromino::updateShapeBoundsAndOffsets()
-{
     readShape();
-    current_width = determineCurrentBounds(shape_, true);
-    xOffset = determineOffset(shape_, true);
-    current_height = determineCurrentBounds(shape_, false);
-    yOffset = determineOffset(shape_, false);
 }
 
 void Tetromino::update(double, double dt)
 {
-    updateShapeBoundsAndOffsets();
+    readShape();
 
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
@@ -89,36 +79,55 @@ void Tetromino::readShape()
 
 void Tetromino::repositionInGridSpace(int x, int y)
 {
+    // we start by assuming that the tetromino can move anywhere, and if any of
+    // the conditions are broken we change that
+    bool canMoveRight{ true }, canMoveLeft{ true },
+        canMoveDown{ true }, canMoveUp{ true };
+
     if (x > 0) {
-        if (topleft_.x + xOffset + current_width + x <= constants::gridWidth) {
-            topleft_.x += x;
+        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
+            if (topLeft_.x + cell.x + x >= constants::gridWidth ||
+                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x + x),
+                    static_cast<size_t>(topLeft_.y + cell.y)).isOpen())
+                canMoveRight = false;
         }
+        if (canMoveRight) topLeft_.x += x;
     } else if (x < 0) {
-        if (topleft_.x + xOffset + x >= 0) {
-            topleft_.x += x;
+        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
+            if (topLeft_.x + cell.x + x < 0 ||
+                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x + x),
+                    static_cast<size_t>(topLeft_.y + cell.y)).isOpen())
+                canMoveLeft = false;
         }
+        if (canMoveLeft) topLeft_.x += x;
     }
 
     if (y > 0) {
-        if (topleft_.y + +yOffset + current_height + y
-            <= constants::gridHeight) {
-            topleft_.y += y;
-        } else {
-            grid_.bakeActiveTetromino(*this);
+        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
+            if (topLeft_.y + cell.y + y >= constants::gridHeight ||
+                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x),
+                    static_cast<size_t>(topLeft_.y + cell.y + y)).isOpen())
+                canMoveDown = false;
         }
-    } else if (y < 0) {
-        if (topleft_.y + yOffset + y >= 0) {
-            topleft_.y += y;
+        if (canMoveDown) topLeft_.y += y;
+        else grid_.bakeActiveTetromino(*this);
+    } else if (y < 0) {    // just for completeness
+        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
+            if (topLeft_.y + cell.y + y < 0 ||
+                !grid_.get(static_cast<size_t>(topLeft_.x + cell.x),
+                    static_cast<size_t>(topLeft_.y + cell.y + y)).isOpen())
+                canMoveUp = false;
         }
+        if (canMoveUp) topLeft_.y += y;
     }
 }
 
 void Tetromino::repositionInScreenSpace()
 {
     m_pos.x = grid_.innerTopLeftPt.x
-              + static_cast<double>(topleft_.x * constants::cellWidth);
+              + static_cast<double>(topLeft_.x * constants::cellWidth);
     m_pos.y = grid_.innerTopLeftPt.y
-              + static_cast<double>(topleft_.y * constants::cellHeight);
+              + static_cast<double>(topLeft_.y * constants::cellHeight);
 
     for (size_t i{0}; i < shape_.size(); ++i) {
         int x{static_cast<int>(i % constants::shapeWidth)};
@@ -132,86 +141,6 @@ void Tetromino::repositionInScreenSpace()
     }
 }
 
-static int determineCurrentBounds(const std::vector<Cell>& shape,
-                                  bool wantWidth)
-{
-    int lower{constants::shapeWidth};
-    int upper{-1};
-
-    for (size_t y{0}; y < constants::shapeHeight; ++y) {
-        bool is_line_started{false};
-        for (size_t x{0}; x < constants::shapeWidth; ++x) {
-            bool is_cell_on{};
-            if (wantWidth)
-                is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            else
-                is_cell_on = shape[y + x * constants::shapeWidth].renderMe();
-
-            if (is_cell_on) {
-                // NB this is not an if-else. If the line hasn't started, then
-                // we want to start it and pull the lower bound here if
-                // necessary. But that means the line *has now* started, and so
-                // we also want to push the greater bound here too if necessary
-                if (!is_line_started) {
-                    is_line_started = true;
-                    if (static_cast<int>(x) < lower)
-                        lower = static_cast<int>(x);
-                }
-                if (is_line_started && static_cast<int>(x) > upper)
-                    upper = static_cast<int>(x);
-            } else if (is_line_started)
-                is_line_started = false;
-        }
-    }
-
-    int extent{upper - lower + 1};
-    // #ifndef NDEBUG
-    //     if (wantWidth)
-    //         LOGF("current width: %d", extent);
-    //     else
-    //         LOGF("current height: %d", extent);
-    // #endif
-    return extent;
-}
-
-// determines how many empty rows there are in a shape's bounding box
-// from the left (if wantX) or the top (if !wantX)
-static int determineOffset(const std::vector<Cell>& shape, bool wantX)
-{
-    int offset{0};
-    bool is_cell_on{};
-
-    for (size_t x{0}; x < constants::shapeWidth; ++x) {
-        bool maybe_offset{false};
-        for (size_t y{0}; y < constants::shapeHeight; ++y) {
-            if (wantX)
-                is_cell_on = shape[x + y * constants::shapeWidth].renderMe();
-            else
-                is_cell_on = shape[y + x * constants::shapeHeight].renderMe();
-
-            if (is_cell_on) {
-                maybe_offset = false;
-                break;
-            }
-
-            if (maybe_offset && y == constants::shapeHeight - 1)
-                ++offset;
-
-            maybe_offset = true;
-        }
-        if (is_cell_on)
-            break;
-    }
-
-    // #ifndef NDEBUG
-    //     if (wantX)
-    //         LOGF("xOffset: %d", offset);
-    //     else
-    //         LOGF("yOffset: %d", offset);
-    // #endif
-
-    return offset;
-}
 
 void Tetromino::move(int dir)
 {
@@ -231,9 +160,34 @@ void Tetromino::soft_drop()
 
 void Tetromino::reset(const TetrominoShape& newShape)
 {
-    topleft_ = { constants::gridWidth / 2 - 2, 0 };
-    tetrominoShape_ = newShape;
-
     shape_.clear();
+
+    topLeft_ = { constants::gridWidth / 2 - 2, 0 };
+    tetrominoShape_ = newShape;
+    col_ = determineColour(tetrominoShape_);
+    currentRotation_ = 0;
+
     init();
+}
+
+static const utl::Colour& determineColour(const TetrominoShape& shape)
+{
+    switch (shape.id) {
+    case 'I':
+        return colours::I_tetrominoCol;
+    case 'O':
+        return colours::O_tetrominoCol;
+    case 'T':
+        return colours::T_tetrominoCol;
+    case 'J':
+        return colours::J_tetrominoCol;
+    case 'L':
+        return colours::L_tetrominoCol;
+    case 'S':
+        return colours::S_tetrominoCol;
+    case 'Z':
+        return colours::Z_tetrominoCol;
+    default:    // shouldn't get here - return an "error" colour
+        return colours::instructionsText;
+    }
 }

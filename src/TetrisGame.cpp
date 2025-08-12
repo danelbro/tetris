@@ -19,19 +19,41 @@ static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
 
+void TetrisGame::fillShapeQueue()
+{
+    while (upcomingShapes_.size() < constants::shapeQueueMax)
+    {
+        upcomingShapes_.emplace(getRandomShape());
+    }
+}
+
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
-                       utl::Renderer& renderer)
-    : utl::Stage{screen, windowID, renderer,
-                 flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
-      grid{screen, *this, colours::gridWalls},
-      activeTetro{screen,
-                grid,
-                {(constants::gridWidth / 2) - 2, 0},
-                colours::Z_tetrominoCol,
-                Z_tetromino},
-      entities_{}
+    utl::Renderer& renderer)
+    : utl::Stage{ screen, windowID, renderer,
+                 flags::STAGES_MAP.at(flags::STAGES::TETRIS) },
+    grid{ screen, *this, colours::gridWalls },
+    activeTetro{ screen, grid, {}, colours::gridBG, I_tetromino},
+    entities_{}, possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}
 {
     entities_.reserve(0xFF);
+    possibleShapes_.reserve(constants::tetrominoes);
+
+    possibleShapes_.emplace_back(I_tetromino);
+    possibleShapes_.emplace_back(O_tetromino);
+    possibleShapes_.emplace_back(T_tetromino);
+    possibleShapes_.emplace_back(J_tetromino);
+    possibleShapes_.emplace_back(L_tetromino);
+    possibleShapes_.emplace_back(S_tetromino);
+    possibleShapes_.emplace_back(Z_tetromino);
+
+    std::random_device dev;
+    rng.seed(dev());
+    tetroDist.param(
+        std::uniform_int_distribution<unsigned int>::param_type{
+            0, constants::tetrominoes - 1 });
+
+    fillShapeQueue();
+    resetActiveTetro();
 }
 
 std::string
@@ -62,6 +84,9 @@ TetrisGame::handle_input(double, double,
 
 std::string TetrisGame::update(double t, double dt)
 {
+    if (upcomingShapes_.size() < constants::shapeQueueMin)
+        fillShapeQueue();
+
     grid.update(t, dt);
     activeTetro.update(t, dt);
     for (const auto& entity : entities_) {
@@ -83,12 +108,13 @@ void TetrisGame::render(double, double)
 
 void TetrisGame::resetActiveTetro()
 {
-    const TetrominoShape& newShape{ getRandomShape() };
+    const TetrominoShape& newShape{ upcomingShapes_.front() };
+    upcomingShapes_.pop();
 
     activeTetro.reset(newShape);
 }
 
 const TetrominoShape& TetrisGame::getRandomShape()
 {
-    return S_tetromino;
+    return possibleShapes_[tetroDist(rng)];
 }
