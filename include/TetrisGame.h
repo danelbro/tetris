@@ -24,7 +24,6 @@ public:
 
 private:
     Grid grid;
-    Tetromino testTetro;
+    Tetromino activeTetro;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
-    const TetrominoShape I_tetromino;
 };

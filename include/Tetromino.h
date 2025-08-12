@@ -7,6 +7,7 @@
 #include "Cell.h"
 #include "Grid.h"
 #include "GridPoint.h"
+#include "TetrominoShape.h"
 #include "constants.h"
 
 #include <array>
@@ -27,7 +28,7 @@ public:
 
 private:
     void init();
-    void readShape(const TetrominoShape& tetrominoShape);
+    void readShape();
     void updateShapeBoundsAndOffsets();
 
     void repositionInGridSpace(int x, int y);
@@ -44,8 +45,5 @@ private:
     utl::Colour col;
     double tickTime;
     double timeSinceTick;
-    int xThisFrame;
-    int yThisFrame;
-    int maxXPerSecond;
-    int maxYPerSecond;
+    size_t currentRotation;
 };

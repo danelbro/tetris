@@ -2,6 +2,7 @@
 
 #include "Cell.h"
 #include "GridPoint.h"
+#include "TetrominoShape.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -23,7 +24,7 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
       tetrominoShape_{tetrominoShape}, grid_{grid}, topleft_{grid_point},
       shape{}, current_width{}, xOffset{}, current_height{}, yOffset{},
       col{colour}, tickTime{constants::initialTickTime}, timeSinceTick{0.0},
-      xThisFrame{0}, yThisFrame{0}, maxXPerSecond{1}, maxYPerSecond{1}
+      currentRotation{0}
 {
     init();
 }
@@ -38,7 +39,7 @@ void Tetromino::init()
 
 void Tetromino::updateShapeBoundsAndOffsets()
 {
-    readShape(tetrominoShape_);
+    readShape();
     current_width = determineCurrentBounds(shape, true);
     xOffset = determineOffset(shape, true);
     current_height = determineCurrentBounds(shape, false);
@@ -52,10 +53,7 @@ void Tetromino::update(double, double dt)
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
         timeSinceTick = 0.0;
-        yThisFrame++;
-        repositionInGridSpace(xThisFrame, yThisFrame);
-        xThisFrame = 0;
-        yThisFrame = 0;
+        repositionInGridSpace(0, 1);
     }
 }
 
@@ -73,16 +71,19 @@ void Tetromino::render(utl::Renderer& renderer)
     utl::setRendererDrawColour(renderer, oldCol);
 }
 
-void Tetromino::readShape(const TetrominoShape& tetrominoShape)
+void Tetromino::readShape()
 {
-    for (size_t i{0}; i < tetrominoShape.shape.size(); ++i) {
-        if (tetrominoShape.shape[i]) {
-            if (!shape[i].renderMe())
-                shape[i].makeRender();
-        } else {
-            if (shape[i].renderMe())
-                shape[i].stopRendering();
-        }
+    for (auto& cell : shape)
+        cell.stopRendering();
+
+    auto& current_shape{
+        tetrominoShape_.at(static_cast<size_t>(currentRotation))
+    };
+
+    for (const auto& cell : current_shape) {
+        shape[
+            static_cast<size_t>(
+                cell.x + cell.y * constants::shapeWidth)].makeRender();
     }
 }
 
@@ -214,21 +215,16 @@ static int determineOffset(const std::vector<Cell>& shape, bool wantX)
 
 void Tetromino::move(int dir)
 {
-    if (xThisFrame >= maxXPerSecond)
-        return;
-
-    xThisFrame += dir;
+    repositionInGridSpace(dir, 0);
 }
 
 void Tetromino::rotate(int dir)
 {
-    LOGF("Rotating tetromino %d", dir);
+    currentRotation = (currentRotation + dir + constants::rotations)
+        % constants::rotations;
 }
 
 void Tetromino::soft_drop()
 {
-    if (yThisFrame >= maxYPerSecond)
-        return;
-
-    yThisFrame++;
+    repositionInGridSpace(0, 1);
 }
