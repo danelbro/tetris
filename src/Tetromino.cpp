@@ -9,20 +9,29 @@
 #include "flags.h"
 
 #include <cstddef>
+#include <unordered_map>
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 #include <vector>
 
+struct TestPacket {
+    TestPacket(TetrominoShape& newShape, Grid& newGrid, GridPoint& point,
+        size_t currentRot, size_t newRot) :
+        shape{ newShape }, grid{ newGrid }, topLeft{ point },
+        currentRotation{ currentRot }, newRotation{ newRot } {
+    }
+
+    TetrominoShape shape;
+    Grid& grid;
+    GridPoint topLeft;
+    size_t currentRotation;
+    size_t newRotation;
+};
+
 static const utl::Colour& determineColour(const TetrominoShape&);
 static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
                            const Grid& grid, const GridPoint& topLeft);
-
-struct TestPacket {
-    TetrominoShape shape;
-    GridPoint topLeft;
-    size_t currentRotation;
-    int newRotation;
-};
+static bool test(TestPacket& testPacket, int testNo);
 
 Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                      const utl::Colour& colour,
@@ -42,6 +51,7 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
 
 void Tetromino::init()
 {
+    shape_.reserve(constants::shapeWidth * constants::shapeHeight);
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
         shape_.emplace_back(m_screenSpace, col_, grid_);
     }
@@ -159,11 +169,20 @@ void Tetromino::rotate(int dir)
     size_t new_rotation{
         static_cast<size_t>((static_cast<int>(currentRotation_) + dir
                              + static_cast<int>(constants::rotations))
-                            % static_cast<int>(constants::rotations))};
+                            % static_cast<int>(constants::rotations)) };
 
-    currentRotation_ = new_rotation;
+    TestPacket testPacket(tetrominoShape_, grid_, topLeft_, currentRotation_,
+        new_rotation);
 
-    isRotating = true;
+    for (int testNo{1}; testNo <= constants::tests; ++testNo) {
+        if (test(testPacket, testNo)) {
+            currentRotation_ = new_rotation;
+            topLeft_.x = testPacket.topLeft.x;
+            topLeft_.y = testPacket.topLeft.y;
+            isRotating = true;
+            break;
+        }
+    }
 }
 
 void Tetromino::soft_drop()
@@ -213,15 +232,165 @@ static const utl::Colour& determineColour(const TetrominoShape& shape)
 static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
                            const Grid& grid, const GridPoint& topLeft)
 {
-    bool isInOpenSpace{true};
     for (const GridPoint& cell : shape.at(rotation)) {
         int x{topLeft.x + cell.x};
         int y{topLeft.y + cell.y};
-        if (x >= constants::gridWidth || x < 0 || y >= constants::gridHeight
-            || y < 0
-            || !grid.get(static_cast<unsigned>(x), static_cast<unsigned>(y))
-                    .isOpen())
-            isInOpenSpace = false;
+        if (x >= constants::gridWidth     || x < 0
+            || y >= constants::gridHeight || y < 0
+            || !grid.get(x, y).isOpen())
+            return false;
     }
-    return isInOpenSpace;
+    return true;
+}
+
+typedef std::tuple<int, char, size_t, size_t> srs_key;
+
+struct srs_hash
+{
+    std::size_t operator()(const srs_key& k) const
+    {
+        return std::get<0>(k) ^ std::get<1>(k)
+            ^ std::get<2>(k) ^ std::get<3>(k);
+    }
+
+};
+
+typedef std::unordered_map<const srs_key, GridPoint, srs_hash> srs_map;
+
+// clang-format off
+static srs_map
+testDB
+{
+    // J, L, S, T Z - test 1
+    {{1,'O',0,1},{ 0, 0}},
+    {{1,'O',1,0},{ 0, 0}},
+    {{1,'O',1,2},{ 0, 0}},
+    {{1,'O',2,1},{ 0, 0}},
+    {{1,'O',2,3},{ 0, 0}},
+    {{1,'O',3,2},{ 0, 0}},
+    {{1,'O',3,0},{ 0, 0}},
+    {{1,'O',0,3},{ 0, 0}},
+
+    // I - test 1
+    {{1,'I',0,1},{ 0, 0}},
+    {{1,'I',1,0},{ 0, 0}},
+    {{1,'I',1,2},{ 0, 0}},
+    {{1,'I',2,1},{ 0, 0}},
+    {{1,'I',2,3},{ 0, 0}},
+    {{1,'I',3,2},{ 0, 0}},
+    {{1,'I',3,0},{ 0, 0}},
+    {{1,'I',0,3},{ 0, 0}},
+
+    // J, L, S, T Z - test 2
+    {{2,'O',0,1},{-1, 0}},
+    {{2,'O',1,0},{ 1, 0}},
+    {{2,'O',1,2},{ 1, 0}},
+    {{2,'O',2,1},{-1, 0}},
+    {{2,'O',2,3},{ 1, 0}},
+    {{2,'O',3,2},{-1, 0}},
+    {{2,'O',3,0},{-1, 0}},
+    {{2,'O',0,3},{ 1, 0}},
+
+    // I - test 2
+    {{2,'I',0,1},{-2, 0}},
+    {{2,'I',1,0},{ 2, 0}},
+    {{2,'I',1,2},{-1, 0}},
+    {{2,'I',2,1},{ 1, 0}},
+    {{2,'I',2,3},{ 2, 0}},
+    {{2,'I',3,2},{-2, 0}},
+    {{2,'I',3,0},{ 1, 0}},
+    {{2,'I',0,3},{-1, 0}},
+
+    // J, L, S, T Z - test 3
+    {{3,'O',0,1},{-1,-1}},
+    {{3,'O',1,0},{ 1, 1}},
+    {{3,'O',1,2},{ 1, 1}},
+    {{3,'O',2,1},{-1,-1}},
+    {{3,'O',2,3},{ 1,-1}},
+    {{3,'O',3,2},{-1, 1}},
+    {{3,'O',3,0},{-1, 1}},
+    {{3,'O',0,3},{ 1,-1}},
+
+    // I - test 3
+    {{3,'I',0,1},{ 1, 0}},
+    {{3,'I',1,0},{-1, 0}},
+    {{3,'I',1,2},{ 2, 0}},
+    {{3,'I',2,1},{-2, 0}},
+    {{3,'I',2,3},{-1, 0}},
+    {{3,'I',3,2},{ 1, 0}},
+    {{3,'I',3,0},{-2, 0}},
+    {{3,'I',0,3},{ 2, 0}},
+
+    // J, L, S, T Z - test 4
+    {{4,'O',0,1},{ 0, 2}},
+    {{4,'O',1,0},{ 0,-2}},
+    {{4,'O',1,2},{ 0,-2}},
+    {{4,'O',2,1},{ 0, 2}},
+    {{4,'O',2,3},{ 0, 2}},
+    {{4,'O',3,2},{ 0,-2}},
+    {{4,'O',3,0},{ 0,-2}},
+    {{4,'O',0,3},{ 0, 2}},
+
+    // I - test 4
+    {{4,'I',0,1},{-2, 1}},
+    {{4,'I',1,0},{ 2,-1}},
+    {{4,'I',1,2},{-1,-2}},
+    {{4,'I',2,1},{ 1, 2}},
+    {{4,'I',2,3},{ 2,-1}},
+    {{4,'I',3,2},{-2, 1}},
+    {{4,'I',3,0},{ 1, 2}},
+    {{4,'I',0,3},{-1,-2}},
+
+    // J, L, S, T Z - test 5
+    {{5,'O',0,1},{-1, 2}},
+    {{5,'O',1,0},{ 1,-2}},
+    {{5,'O',1,2},{ 1,-2}},
+    {{5,'O',2,1},{-1, 2}},
+    {{5,'O',2,3},{ 1, 2}},
+    {{5,'O',3,2},{-1,-2}},
+    {{5,'O',3,0},{-1,-2}},
+    {{5,'O',0,3},{ 1, 2}},
+
+    // I - test 5
+    {{5,'I',0,1},{ 1,-2}},
+    {{5,'I',1,0},{-1, 2}},
+    {{5,'I',1,2},{ 2, 1}},
+    {{5,'I',2,1},{-2,-1}},
+    {{5,'I',2,3},{-1, 2}},
+    {{5,'I',3,2},{ 1,-2}},
+    {{5,'I',3,0},{-2,-1}},
+    {{5,'I',0,3},{ 2, 1}},
+
+};
+// clang-format on
+
+static bool test(TestPacket& tp, int testNo)
+{
+    char shapeType{};
+    switch (tp.shape.id) {
+    case 'J': case 'L': case 'S': case 'Z': case 'T':
+        shapeType = 'O';
+        break;
+    case 'I':
+        shapeType = 'I';
+        break;
+    default:
+        shapeType = 'E';
+        break;
+    }
+
+    srs_key key{std::make_tuple(testNo, shapeType,
+        tp.currentRotation, tp.newRotation)};
+
+    GridPoint shift{testDB[key]};
+
+    GridPoint testPoint{tp.topLeft.x + shift.x, tp.topLeft.y + shift.y};
+
+    if (isShapeInSpace(tp.shape, tp.newRotation, tp.grid, testPoint)) {
+        tp.topLeft.x += shift.x;
+        tp.topLeft.y += shift.y;
+        return true;
+    }
+
+    return false;
 }

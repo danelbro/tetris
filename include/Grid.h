@@ -19,7 +19,7 @@ public:
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
-    const Cell& get(unsigned x, unsigned y) const;
+    const Cell& get(int x, int y) const;
 
     void bakeActiveTetromino(const Tetromino& tetromino);
 

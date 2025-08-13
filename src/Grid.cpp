@@ -60,12 +60,12 @@ void Grid::render(utl::Renderer& renderer)
     utl::setRendererDrawColour(renderer, old);
 }
 
-const Cell& Grid::get(unsigned x, unsigned y) const
+const Cell& Grid::get(int x, int y) const
 {
-    unsigned index{x + y * constants::gridWidth};
-    if (index > grid.size())
+    if (x < 0 || y < 0)
         throw std::runtime_error("overflow");
-    return grid[x + y * constants::gridWidth];
+
+    return grid[static_cast<size_t>(x + y * constants::gridWidth)];
 }
 
 void Grid::placeWalls()

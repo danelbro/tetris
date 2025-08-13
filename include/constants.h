@@ -15,6 +15,7 @@ inline constexpr int shapeHeight{4};
 inline constexpr size_t minos{4};
 inline constexpr size_t rotations{4};
 inline constexpr size_t tetrominoes{7};
+inline constexpr int tests{ 5 };
 
 inline constexpr size_t shapeQueueMin{2};
 inline constexpr size_t shapeQueueMax{10};
