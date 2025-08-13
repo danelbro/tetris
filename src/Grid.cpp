@@ -8,6 +8,7 @@
 #include "flags.h"
 #include "utl_Vec2d.hpp"
 
+#include <stdexcept>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -59,8 +60,11 @@ void Grid::render(utl::Renderer& renderer)
     utl::setRendererDrawColour(renderer, old);
 }
 
-Cell& Grid::get(unsigned x, unsigned y)
+const Cell& Grid::get(unsigned x, unsigned y) const
 {
+    unsigned index{x + y * constants::gridWidth};
+    if (index > grid.size())
+        throw std::runtime_error("overflow");
     return grid[x + y * constants::gridWidth];
 }
 

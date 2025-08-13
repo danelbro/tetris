@@ -1,6 +1,7 @@
 #include "Tetromino.h"
 
 #include "Cell.h"
+#include "Grid.h"
 #include "GridPoint.h"
 #include "TetrominoShape.h"
 #include "colours.h"
@@ -13,6 +14,15 @@
 #include <vector>
 
 static const utl::Colour& determineColour(const TetrominoShape&);
+static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
+                           const Grid& grid, const GridPoint& topLeft);
+
+struct TestPacket {
+    TetrominoShape shape;
+    GridPoint topLeft;
+    size_t currentRotation;
+    int newRotation;
+};
 
 Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                      const utl::Colour& colour,
@@ -106,60 +116,12 @@ void Tetromino::readShape()
 
 void Tetromino::repositionInGridSpace(int x, int y)
 {
-    // we start by assuming that the tetromino can move anywhere, and if any of
-    // the conditions are broken we change that
-    bool canMoveRight{true}, canMoveLeft{true}, canMoveDown{true},
-        canMoveUp{true};
-
-    if (x > 0) {
-        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.x + cell.x + x >= constants::gridWidth
-                || !grid_
-                        .get(static_cast<unsigned>(topLeft_.x + cell.x + x),
-                             static_cast<unsigned>(topLeft_.y + cell.y))
-                        .isOpen())
-                canMoveRight = false;
-        }
-        if (canMoveRight)
-            topLeft_.x += x;
-    } else if (x < 0) {
-        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.x + cell.x + x < 0
-                || !grid_
-                        .get(static_cast<unsigned>(topLeft_.x + cell.x + x),
-                             static_cast<unsigned>(topLeft_.y + cell.y))
-                        .isOpen())
-                canMoveLeft = false;
-        }
-        if (canMoveLeft)
-            topLeft_.x += x;
-    }
-
-    if (y > 0) {
-        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.y + cell.y + y >= constants::gridHeight
-                || !grid_
-                        .get(static_cast<unsigned>(topLeft_.x + cell.x),
-                             static_cast<unsigned>(topLeft_.y + cell.y + y))
-                        .isOpen())
-                canMoveDown = false;
-        }
-        if (canMoveDown)
-            topLeft_.y += y;
-        else
-            grid_.bakeActiveTetromino(*this);
-    } else if (y < 0) {  // just for completeness
-        for (const GridPoint& cell : tetrominoShape_.at(currentRotation_)) {
-            if (topLeft_.y + cell.y + y < 0
-                || !grid_
-                        .get(static_cast<unsigned>(topLeft_.x + cell.x),
-                             static_cast<unsigned>(topLeft_.y + cell.y + y))
-                        .isOpen())
-                canMoveUp = false;
-        }
-        if (canMoveUp)
-            topLeft_.y += y;
-    }
+    GridPoint checkPoint{topLeft_.x + x, topLeft_.y + y};
+    if (isShapeInSpace(tetrominoShape_, currentRotation_, grid_, checkPoint)) {
+        topLeft_.x += x;
+        topLeft_.y += y;
+    } else if (y > 0)
+        grid_.bakeActiveTetromino(*this);
 }
 
 void Tetromino::repositionInScreenSpace()
@@ -191,7 +153,7 @@ void Tetromino::move(int dir)
 
 void Tetromino::rotate(int dir)
 {
-    if (isRotating)
+    if (isRotating || tetrominoShape_.id == 'O')
         return;
 
     size_t new_rotation{
@@ -246,4 +208,20 @@ static const utl::Colour& determineColour(const TetrominoShape& shape)
     default:  // shouldn't get here - return an "error" colour
         return colours::instructionsText;
     }
+}
+
+static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
+                           const Grid& grid, const GridPoint& topLeft)
+{
+    bool isInOpenSpace{true};
+    for (const GridPoint& cell : shape.at(rotation)) {
+        int x{topLeft.x + cell.x};
+        int y{topLeft.y + cell.y};
+        if (x >= constants::gridWidth || x < 0 || y >= constants::gridHeight
+            || y < 0
+            || !grid.get(static_cast<unsigned>(x), static_cast<unsigned>(y))
+                    .isOpen())
+            isInOpenSpace = false;
+    }
+    return isInOpenSpace;
 }

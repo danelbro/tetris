@@ -20,13 +20,6 @@ static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
 
-void TetrisGame::fillShapeQueue()
-{
-    while (upcomingShapes_.size() < constants::shapeQueueMax) {
-        upcomingShapes_.emplace(getRandomShape());
-    }
-}
-
 TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                        utl::Renderer& renderer)
     : utl::Stage{screen, windowID, renderer,
@@ -48,8 +41,8 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
 
     std::random_device dev;
     rng = std::mt19937{dev()};
-    tetroDist =
-        std::uniform_int_distribution<size_t>{0, constants::tetrominoes - 1};
+    tetroDist = std::uniform_int_distribution<std::mt19937::result_type>{
+        0, constants::tetrominoes - 1};
 
     fillShapeQueue();
     resetActiveTetro();
@@ -116,4 +109,11 @@ void TetrisGame::resetActiveTetro()
 const TetrominoShape& TetrisGame::getRandomShape()
 {
     return possibleShapes_[tetroDist(rng)];
+}
+
+void TetrisGame::fillShapeQueue()
+{
+    while (upcomingShapes_.size() < constants::shapeQueueMax) {
+        upcomingShapes_.emplace(getRandomShape());
+    }
 }
