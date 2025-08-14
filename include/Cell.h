@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GridPoint.h>
+#include "GridPoint.h"
 
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>

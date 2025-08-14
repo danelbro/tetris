@@ -63,11 +63,15 @@ TetrisGame::handle_input(double, double,
     } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                || keyState.at(utl::KeyFlag::K_Z)) {
         activeTetro.rotate(-1);
-    } else if (keyState.at(utl::KeyFlag::K_LEFT)) {
+    }
+
+    if (keyState.at(utl::KeyFlag::K_LEFT)) {
         activeTetro.move(-1);
     } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
         activeTetro.move(1);
-    } else if (keyState.at(utl::KeyFlag::K_DOWN)) {
+    }
+
+    if (keyState.at(utl::KeyFlag::K_DOWN)) {
         activeTetro.soft_drop();
     }
 
