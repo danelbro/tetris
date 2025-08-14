@@ -1,8 +1,10 @@
 #pragma once
 
-#include "TetrominoShape.h"
 #include "Grid.h"
 #include "GridPoint.h"
+#include "TetrominoShape.h"
+
+#include <unordered_map>
 
 struct TestPacket {
     TestPacket(TetrominoShape& newShape, Grid& newGrid, GridPoint& point,
@@ -31,7 +33,8 @@ bool operator==(srs_key& left, srs_key& right)
 struct srs_hash {
     std::size_t operator()(const srs_key& k) const
     {
-        return std::get<0>(k) ^ std::get<1>(k) ^ std::get<2>(k)
+        return static_cast<long unsigned>(std::get<0>(k))
+               ^ static_cast<long unsigned>(std::get<1>(k)) ^ std::get<2>(k)
                ^ std::get<3>(k);
     }
 };
