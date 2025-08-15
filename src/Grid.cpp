@@ -144,7 +144,8 @@ static int clearLines(std::vector<Cell>& grid)
 
     for (const auto& line : clearedLines) {
         for (int x{ 0 }; x < constants::gridWidth; ++x) {
-            Cell& activeCell{grid[x + line * constants::gridWidth]};
+            Cell& activeCell{
+                grid[static_cast<size_t>(x + line * constants::gridWidth)]};
             activeCell.open();
             activeCell.setColour(colours::gridBG);
         }
@@ -168,7 +169,8 @@ static void countLinesToClear(const std::vector<Cell>& grid,
     for (int y{ 0 }; y < constants::gridHeight; ++y) {
         filledCells = 0;
         for (int x{ 0 }; x < constants::gridWidth; ++x) {
-            if (!grid[x + y * constants::gridWidth].isOpen())
+            if (!grid[static_cast<size_t>(
+                x + y * constants::gridWidth)].isOpen())
                 ++filledCells;
         }
 
@@ -182,13 +184,15 @@ static void applyGravity(std::vector<Cell>& grid, int startY)
     // assume clearedLines is sorted in ascending order
     for (int y{ startY }; y < constants::gridHeight; ++y) {
         for (int x{ 0 }; x < constants::gridWidth; ++x) {
-            Cell& activeCell{ grid[x + y * constants::gridWidth] };
+            Cell& activeCell{
+                grid[static_cast<size_t>(x + y * constants::gridWidth)] };
             if (!activeCell.isOpen()) {
                 utl::Colour transferColour{ activeCell.colour() };
                 activeCell.open();
                 activeCell.setColour(colours::gridBG);
                 Cell& lowerCell{
-                    grid[x + lowestEmptyCell(grid, x, y) * constants::gridWidth]
+                    grid[static_cast<size_t>(x + lowestEmptyCell(grid, x, y)
+                        * constants::gridWidth)]
                 };
                 lowerCell.close();
                 lowerCell.setColour(transferColour);
@@ -201,7 +205,7 @@ static int lowestEmptyCell(const std::vector<Cell>& grid, int x, int startY)
 {
     int lowestY{ startY };
     for (int y{ startY + 1 }; y < constants::gridHeight; ++y) {
-        if (grid[x + y * constants::gridWidth].isOpen())
+        if (grid[static_cast<size_t>(x + y * constants::gridWidth)].isOpen())
             lowestY = y;
         else break;
     }
