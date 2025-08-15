@@ -13,13 +13,20 @@
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 
+static int clearLines(std::vector<Cell>& grid);
+static void countLinesToClear(const std::vector<Cell>& grid,
+    std::vector<int>& clearedLines);
+static void applyGravity(std::vector<Cell>& grid, int startY);
+static int lowestEmptyCell(const std::vector<Cell>& grid, int x, int y);
+
 Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
-      tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour}
+      tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour},
+      linesClearedTotal{0}, linesClearedThisFrame{0}
 {
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
         grid.emplace_back(screen, *this);
@@ -29,7 +36,10 @@ Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
     enableRenderBGCells();
 }
 
-void Grid::update(double, double) {}
+void Grid::update(double, double)
+{
+    linesClearedThisFrame = 0;
+}
 
 void Grid::bakeActiveTetromino(const Tetromino& tetromino)
 {
@@ -45,6 +55,9 @@ void Grid::bakeActiveTetromino(const Tetromino& tetromino)
     }
 
     tetrisGame_.resetActiveTetro();
+    linesClearedThisFrame = clearLines(grid);
+    if (linesClearedThisFrame > 0)
+        tetrisGame_.notifyScored(linesClearedThisFrame);
 }
 
 void Grid::render(utl::Renderer& renderer)
@@ -119,4 +132,79 @@ void Grid::enableRenderBGCells()
         grid[i].setColour(colours::gridBG);
         grid[i].makeRender();
     }
+}
+
+static int clearLines(std::vector<Cell>& grid)
+{
+    std::vector<int> clearedLines{};
+    clearedLines.reserve(constants::gridHeight);
+
+    countLinesToClear(grid, clearedLines);
+    int linesCleared{ static_cast<int>(clearedLines.size()) };
+
+    for (const auto& line : clearedLines) {
+        for (int x{ 0 }; x < constants::gridWidth; ++x) {
+            Cell& activeCell{grid[x + line * constants::gridWidth]};
+            activeCell.open();
+            activeCell.setColour(colours::gridBG);
+        }
+    }
+
+    if (clearedLines.size() > 0) {
+        for (int y{ constants::gridHeight - 1 }; y > 0; --y) {
+            applyGravity(grid, y);
+        }
+    }
+
+    return linesCleared;
+}
+
+static void countLinesToClear(const std::vector<Cell>& grid,
+    std::vector<int>& clearedLines)
+{
+    clearedLines.clear();
+    int filledCells{ 0 };
+
+    for (int y{ 0 }; y < constants::gridHeight; ++y) {
+        filledCells = 0;
+        for (int x{ 0 }; x < constants::gridWidth; ++x) {
+            if (!grid[x + y * constants::gridWidth].isOpen())
+                ++filledCells;
+        }
+
+        if (filledCells == constants::gridWidth)
+            clearedLines.push_back(y);
+    }
+}
+
+static void applyGravity(std::vector<Cell>& grid, int startY)
+{
+    // assume clearedLines is sorted in ascending order
+    for (int y{ startY }; y < constants::gridHeight; ++y) {
+        for (int x{ 0 }; x < constants::gridWidth; ++x) {
+            Cell& activeCell{ grid[x + y * constants::gridWidth] };
+            if (!activeCell.isOpen()) {
+                utl::Colour transferColour{ activeCell.colour() };
+                activeCell.open();
+                activeCell.setColour(colours::gridBG);
+                Cell& lowerCell{
+                    grid[x + lowestEmptyCell(grid, x, y) * constants::gridWidth]
+                };
+                lowerCell.close();
+                lowerCell.setColour(transferColour);
+            }
+        }
+    }
+}
+
+static int lowestEmptyCell(const std::vector<Cell>& grid, int x, int startY)
+{
+    int lowestY{ startY };
+    for (int y{ startY + 1 }; y < constants::gridHeight; ++y) {
+        if (grid[x + y * constants::gridWidth].isOpen())
+            lowestY = y;
+        else break;
+    }
+
+    return lowestY;
 }

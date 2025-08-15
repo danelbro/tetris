@@ -9,6 +9,7 @@
 
 #include <array>
 #include <cstdint>
+#include <iostream>
 #include <memory>
 #include <random>
 #include <string>
@@ -26,7 +27,7 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
       grid{screen, *this, colours::gridWalls},
       activeTetro{screen, grid, {}, colours::gridBG, I_tetromino}, entities_{},
-      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}
+      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -120,4 +121,16 @@ void TetrisGame::fillShapeQueue()
     while (upcomingShapes_.size() < constants::shapeQueueMax) {
         upcomingShapes_.emplace(getRandomShape());
     }
+}
+
+void TetrisGame::notifyScored(int linesCleared)
+{
+    if (linesCleared == constants::tetrisLines)
+        std::cout << "Tetris! ";
+
+    int scoreThisFrame{ linesCleared * 1000 };
+    score += scoreThisFrame;
+
+    std::cout << "Gained " << scoreThisFrame << " points! Total score: "
+        << score << '\n';
 }

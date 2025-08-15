@@ -36,4 +36,6 @@ private:
     std::vector<Cell> grid;
 
     utl::Colour col;
+    int linesClearedTotal;
+    int linesClearedThisFrame;
 };

@@ -25,6 +25,7 @@ public:
     void render(double t, double dt);
 
     void resetActiveTetro();
+    void notifyScored(int linesCleared);
 
 private:
     const TetrominoShape& getRandomShape();
@@ -37,4 +38,5 @@ private:
     std::queue<TetrominoShape> upcomingShapes_;
     std::mt19937 rng;
     std::uniform_int_distribution<std::mt19937::result_type> tetroDist;
+    int score;
 };

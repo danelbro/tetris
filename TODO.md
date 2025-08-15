@@ -1,7 +1,8 @@
 # Tetris to-do
 
-- [ ] Line clearing & tetris
-- [ ] Scoring
+- [X] Line clearing & tetris
+- [X] Scoring
+  - [ ] Better scoring?
 - [ ] Scoreboard
 - [ ] Controls display
 - [X] Wall kicks
