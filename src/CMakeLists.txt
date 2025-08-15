@@ -10,7 +10,6 @@ target_sources(tetris PRIVATE
   "../include/constants.h"
   "../include/flags.h"
   "../include/GridPoint.h"
-  "SRS.cpp" "../include/SRS.h"
   )
 target_include_directories(tetris PUBLIC "../include/")
 target_link_libraries(tetris PRIVATE tetris_extern)
