@@ -152,7 +152,7 @@ static int clearLines(std::vector<Cell>& grid)
     }
 
     if (clearedLines.size() > 0) {
-        for (int y{ constants::gridHeight - 1 }; y > 0; --y) {
+        for (int y{ clearedLines.back() }; y > 0; --y) {
             applyGravity(grid, y);
         }
     }
