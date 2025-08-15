@@ -128,9 +128,9 @@ void TetrisGame::notifyScored(int linesCleared)
     if (linesCleared == constants::tetrisLines)
         std::cout << "Tetris! ";
 
-    int scoreThisFrame{ linesCleared * 1000 };
+    int scoreThisFrame{linesCleared * 1000};
     score += scoreThisFrame;
 
-    std::cout << "Gained " << scoreThisFrame << " points! Total score: "
-        << score << '\n';
+    std::cout << "Gained " << scoreThisFrame
+              << " points! Total score: " << score << '\n';
 }

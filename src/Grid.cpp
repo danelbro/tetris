@@ -6,12 +6,12 @@
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
-#include "utl_Vec2d.hpp"
 
 #include <stdexcept>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 
 static int clearLines(std::vector<Cell>& grid);
 static void countLinesToClear(const std::vector<Cell>& grid,
@@ -190,7 +190,7 @@ static void applyGravity(std::vector<Cell>& grid, int y, int linesCleared)
             activeCell.setColour(colours::gridBG);
 
             Cell& lowerCell{grid[static_cast<size_t>(
-                        x + (y + linesCleared) * constants::gridWidth)]};
+                x + (y + linesCleared) * constants::gridWidth)]};
             lowerCell.close();
             lowerCell.setColour(transferColour);
         }
