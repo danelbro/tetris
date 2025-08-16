@@ -13,6 +13,7 @@ enum class ENTITIES
 {
     GRID,
     CELL,
+    DISPLAYBOX,
     TETROMINO,
     ENTITIES_TOTAL
 };
@@ -20,11 +21,13 @@ enum class ENTITIES
 inline const std::unordered_map<ENTITIES, std::string> ENTITIES_MAP{
     {ENTITIES::GRID, "GRID"},
     {ENTITIES::CELL, "CELL"},
+    {ENTITIES::DISPLAYBOX, "DISPLAYBOX"},
     {ENTITIES::TETROMINO, "TETROMINO"}};
 
 inline const std::unordered_map<std::string, ENTITIES> ENTITIES_STRING_MAP{
     {"GRID", ENTITIES::GRID},
     {"CELL", ENTITIES::CELL},
+    {"DISPLAYBOX", ENTITIES::DISPLAYBOX},
     {"TETROMINO", ENTITIES::TETROMINO}};
 
 enum class STAGES

@@ -48,4 +48,16 @@ inline constexpr double gridPosY{
 inline constexpr int gridWalls{4};
 inline constexpr double initialTickTime{1.0};
 
+inline constexpr int displayBoxWalls{4};
+inline constexpr int displayBoxGridWidth{shapeWidth + 2};
+inline constexpr int displayBoxGridHeight{shapeHeight + 2};
+inline constexpr int displayCellWidth{cellWidth / 2};
+inline constexpr int displayCellHeight{cellHeight / 2};
+inline constexpr int displayBoxWallsThickness{gridWallThickness / 2};
+inline constexpr double displayBoxPosX{
+    (gridPosX * 2 / 3)
+    - (static_cast<double>((displayBoxWallsThickness * 2)
+                           + (displayCellWidth * displayBoxGridWidth))
+       / 2)};
+inline constexpr double displayBoxPosY{gridPosY + gridWallThickness};
 }  // namespace constants

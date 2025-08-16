@@ -29,7 +29,6 @@ private:
     void placeWalls();
     void placeBGCells();
     void enableRenderBGCells();
-
     TetrisGame& tetrisGame_;
 
     std::array<utl::Rect, constants::gridWalls> walls;

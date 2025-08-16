@@ -27,7 +27,8 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
       grid{screen, *this, colours::gridWalls},
       activeTetro{screen, grid, {}, colours::gridBG, I_tetromino}, entities_{},
-      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0}
+      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
+      displayBox{screen}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -59,6 +60,11 @@ TetrisGame::handle_input(double, double,
         || keyState.at(utl::KeyFlag::K_ESCAPE)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
     }
+
+    if (keyState.at(utl::KeyFlag::K_C) || keyState.at(utl::KeyFlag::K_LSHIFT)) {
+        resetActiveTetro();
+    }
+
     if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
         activeTetro.rotate(1);
     } else if (keyState.at(utl::KeyFlag::K_LCTRL)
@@ -95,6 +101,7 @@ std::string TetrisGame::update(double t, double dt)
 void TetrisGame::render(double, double)
 {
     utl::clearScreen(renderer());
+    displayBox.render(renderer());
     grid.render(renderer());
     activeTetro.render(renderer());
     for (const auto& entity : entities_) {
@@ -109,6 +116,22 @@ void TetrisGame::resetActiveTetro()
     upcomingShapes_.pop();
 
     activeTetro.reset(newShape);
+}
+
+void TetrisGame::holdTetro()
+{
+    TetrominoShape newHeld{activeTetro.shape()};
+
+    if (displayBox.isActivated()) {
+        TetrominoShape newActive{displayBox.activeShape()};
+        displayBox.updateShape(newHeld);
+        activeTetro.reset(newActive);
+    }
+    else {
+        displayBox.updateShape(newHeld);
+        displayBox.activate();
+        resetActiveTetro();
+    }
 }
 
 const TetrominoShape& TetrisGame::getRandomShape()
