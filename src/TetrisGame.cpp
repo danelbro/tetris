@@ -62,7 +62,7 @@ TetrisGame::handle_input(double, double,
     }
 
     if (keyState.at(utl::KeyFlag::K_C) || keyState.at(utl::KeyFlag::K_LSHIFT)) {
-        resetActiveTetro();
+        holdTetro();
     }
 
     if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
@@ -124,10 +124,13 @@ void TetrisGame::holdTetro()
 
     if (displayBox.isActivated()) {
         TetrominoShape newActive{displayBox.activeShape()};
+        displayBox.activate();
         displayBox.updateShape(newHeld);
+        displayBox.activate();
         activeTetro.reset(newActive);
     }
     else {
+        displayBox.activate();
         displayBox.updateShape(newHeld);
         displayBox.activate();
         resetActiveTetro();
