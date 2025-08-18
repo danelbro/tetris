@@ -11,6 +11,7 @@
 #include <queue>
 #include <random>
 #include <string>
+#include <unordered_map>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -43,4 +44,9 @@ private:
     int score;
 
     DisplayBox displayBox;
+
+    std::unordered_map<utl::KeyFlag, bool> keyMap;
+    bool canRotate;
+    bool canMove;
+    bool canSoftdrop;
 };

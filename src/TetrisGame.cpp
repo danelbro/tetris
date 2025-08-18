@@ -28,7 +28,8 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
       grid{screen, *this, colours::gridWalls},
       activeTetro{screen, grid, {}, colours::gridBG, I_tetromino}, entities_{},
       possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
-      displayBox{screen}
+      displayBox{screen}, keyMap{}, canRotate{true}, canMove{true},
+      canSoftdrop{true}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -48,6 +49,11 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
 
     fillShapeQueue();
     resetActiveTetro();
+
+    for (int keyInt{utl::KeyFlag::K_LEFT}; keyInt != utl::KeyFlag::K_TOTAL;
+         ++keyInt) {
+        keyMap[static_cast<utl::KeyFlag>(keyInt)] = false;
+    }
 }
 
 std::string
@@ -56,30 +62,50 @@ TetrisGame::handle_input(double, double,
 {
     utl::process_input(screen(), windowID(), keyState);
 
+    // quitting
     if (keyState.at(utl::KeyFlag::QUIT)
         || keyState.at(utl::KeyFlag::K_ESCAPE)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
     }
 
-    if (keyState.at(utl::KeyFlag::K_C) || keyState.at(utl::KeyFlag::K_LSHIFT)) {
-        holdTetro();
+    // holding
+    if (!keyMap.at(utl::KeyFlag::K_C) && !keyMap.at(utl::KeyFlag::K_LSHIFT)) {
+        if (keyState.at(utl::KeyFlag::K_C)
+            || keyState.at(utl::KeyFlag::K_LSHIFT)) {
+            holdTetro();
+            keyMap.at(utl::KeyFlag::K_C) = keyState.at(utl::KeyFlag::K_C);
+            keyMap.at(utl::KeyFlag::K_LSHIFT) =
+                keyState.at(utl::KeyFlag::K_LSHIFT);
+        }
+    } else {
+        keyMap.at(utl::KeyFlag::K_C) = keyState.at(utl::KeyFlag::K_C);
+        keyMap.at(utl::KeyFlag::K_LSHIFT) = keyState.at(utl::KeyFlag::K_LSHIFT);
     }
 
-    if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
-        activeTetro.rotate(1);
-    } else if (keyState.at(utl::KeyFlag::K_LCTRL)
-               || keyState.at(utl::KeyFlag::K_Z)) {
-        activeTetro.rotate(-1);
+    // rotating
+    if (canRotate) {
+        if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
+            activeTetro.rotate(1);
+        } else if (keyState.at(utl::KeyFlag::K_LCTRL)
+                   || keyState.at(utl::KeyFlag::K_Z)) {
+            activeTetro.rotate(-1);
+        }
     }
 
-    if (keyState.at(utl::KeyFlag::K_LEFT)) {
-        activeTetro.move(-1);
-    } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
-        activeTetro.move(1);
+    // moving
+    if (canMove) {
+        if (keyState.at(utl::KeyFlag::K_LEFT)) {
+            activeTetro.move(-1);
+        } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
+            activeTetro.move(1);
+        }
     }
 
-    if (keyState.at(utl::KeyFlag::K_DOWN)) {
-        activeTetro.soft_drop();
+    // soft-dropping
+    if (canSoftdrop) {
+        if (keyState.at(utl::KeyFlag::K_DOWN)) {
+            activeTetro.soft_drop();
+        }
     }
 
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
@@ -128,8 +154,7 @@ void TetrisGame::holdTetro()
         displayBox.updateShape(newHeld);
         displayBox.activate();
         activeTetro.reset(newActive);
-    }
-    else {
+    } else {
         displayBox.activate();
         displayBox.updateShape(newHeld);
         displayBox.activate();
