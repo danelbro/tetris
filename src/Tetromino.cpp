@@ -240,7 +240,7 @@ void Tetromino::repositionInGridSpace(int x, int y)
         topLeft_.x += x;
         topLeft_.y += y;
     } else if (y > 0)
-        grid_.bakeActiveTetromino(*this);
+        grid_.notifyBlockedTetro(*this);
 }
 
 void Tetromino::repositionInScreenSpace()

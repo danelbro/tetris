@@ -21,7 +21,7 @@ public:
 
     const Cell& get(int x, int y) const;
 
-    void bakeActiveTetromino(const Tetromino& tetromino);
+    void notifyBlockedTetro(const Tetromino& tetromino);
 
     const utl::Vec2d innerTopLeftPt;
 
@@ -29,6 +29,7 @@ private:
     void placeWalls();
     void placeBGCells();
     void enableRenderBGCells();
+    void bakeActiveTetromino(const Tetromino& tetromino);
     TetrisGame& tetrisGame_;
 
     std::array<utl::Rect, constants::gridWalls> walls;
@@ -36,5 +37,6 @@ private:
 
     utl::Colour col;
     int linesClearedTotal;
-    int linesClearedThisFrame;
+    int numLinesClearedThisFrame;
+    std::vector<int> linesClearedThisFrame;
 };

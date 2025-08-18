@@ -13,10 +13,12 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 
-static int clearLines(std::vector<Cell>& grid);
-static void countLinesToClear(const std::vector<Cell>& grid,
-                              std::vector<int>& clearedLines);
-static void applyGravity(std::vector<Cell>& grid, int startY, int yToDrop);
+static int countLinesToClear(const std::vector<Cell>& grid,
+                             std::vector<int>& clearedLines);
+static void clearLines(std::vector<Cell>& grid,
+                       const std::vector<int>& clearedLines);
+static void applyGravity(std::vector<Cell>& grid,
+                         const std::vector<int>& clearedLines);
 
 Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
@@ -25,8 +27,9 @@ Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
       tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour},
-      linesClearedTotal{0}, linesClearedThisFrame{0}
+      linesClearedTotal{0}, numLinesClearedThisFrame{0}, linesClearedThisFrame{}
 {
+    linesClearedThisFrame.reserve(static_cast<size_t>(constants::gridHeight));
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
         grid.emplace_back(screen, *this);
     }
@@ -37,26 +40,8 @@ Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
 
 void Grid::update(double, double)
 {
-    linesClearedThisFrame = 0;
-}
-
-void Grid::bakeActiveTetromino(const Tetromino& tetromino)
-{
-    const auto& newColour{tetromino.colour()};
-
-    for (const GridPoint& cell :
-         tetromino.shape().at(tetromino.currentRotation())) {
-        Cell& gridCell{grid[static_cast<size_t>(
-            (cell.x + tetromino.topLeft().x)
-            + (cell.y + tetromino.topLeft().y) * constants::gridWidth)]};
-        gridCell.setColour(newColour);
-        gridCell.close();
-    }
-
-    tetrisGame_.resetActiveTetro();
-    linesClearedThisFrame = clearLines(grid);
-    if (linesClearedThisFrame > 0)
-        tetrisGame_.notifyScored(linesClearedThisFrame);
+    numLinesClearedThisFrame = 0;
+    linesClearedThisFrame.clear();
 }
 
 void Grid::render(utl::Renderer& renderer)
@@ -133,14 +118,37 @@ void Grid::enableRenderBGCells()
     }
 }
 
-static int clearLines(std::vector<Cell>& grid)
+void Grid::notifyBlockedTetro(const Tetromino& tetromino)
 {
-    std::vector<int> clearedLines{};
-    clearedLines.reserve(constants::gridHeight);
+    bakeActiveTetromino(tetromino);
+    tetrisGame_.resetActiveTetro();
 
-    countLinesToClear(grid, clearedLines);
-    int linesCleared{static_cast<int>(clearedLines.size())};
+    numLinesClearedThisFrame = countLinesToClear(grid, linesClearedThisFrame);
 
+    if (numLinesClearedThisFrame > 0) {
+        clearLines(grid, linesClearedThisFrame);
+        applyGravity(grid, linesClearedThisFrame);
+        tetrisGame_.notifyScored(numLinesClearedThisFrame);
+    }
+}
+
+void Grid::bakeActiveTetromino(const Tetromino& tetromino)
+{
+    const auto& newColour{tetromino.colour()};
+
+    for (const GridPoint& cell :
+         tetromino.shape().at(tetromino.currentRotation())) {
+        Cell& gridCell{grid[static_cast<size_t>(
+            (cell.x + tetromino.topLeft().x)
+            + (cell.y + tetromino.topLeft().y) * constants::gridWidth)]};
+        gridCell.setColour(newColour);
+        gridCell.close();
+    }
+}
+
+static void clearLines(std::vector<Cell>& grid,
+                       const std::vector<int>& clearedLines)
+{
     for (const auto& line : clearedLines) {
         for (int x{0}; x < constants::gridWidth; ++x) {
             Cell& activeCell{
@@ -149,21 +157,14 @@ static int clearLines(std::vector<Cell>& grid)
             activeCell.setColour(colours::gridBG);
         }
     }
-
-    if (clearedLines.size() > 0) {
-        for (int y{clearedLines.back()}; 0 < y; --y) {
-            applyGravity(grid, y, linesCleared);
-        }
-    }
-
-    return linesCleared;
 }
 
-static void countLinesToClear(const std::vector<Cell>& grid,
-                              std::vector<int>& clearedLines)
+static int countLinesToClear(const std::vector<Cell>& grid,
+                             std::vector<int>& clearedLines)
 {
     clearedLines.clear();
     int filledCells{0};
+    int numOfClearedLines{0};
 
     for (int y{0}; y < constants::gridHeight; ++y) {
         filledCells = 0;
@@ -173,26 +174,35 @@ static void countLinesToClear(const std::vector<Cell>& grid,
                 ++filledCells;
         }
 
-        if (filledCells == constants::gridWidth)
+        if (filledCells == constants::gridWidth) {
             clearedLines.push_back(y);
+            ++numOfClearedLines;
+        }
     }
+
+    return numOfClearedLines;
 }
 
-static void applyGravity(std::vector<Cell>& grid, int y, int linesCleared)
+static void applyGravity(std::vector<Cell>& grid,
+                         const std::vector<int>& linesCleared)
 {
-    for (int x{0}; x < constants::gridWidth; ++x) {
-        Cell& activeCell{
-            grid[static_cast<size_t>(x + y * constants::gridWidth)]};
+    for (int line : linesCleared) {
+        for (int y{line - 1}; y >= 0; y--) {
+            for (int x{0}; x < constants::gridWidth; ++x) {
+                Cell& activeCell{
+                    grid[static_cast<size_t>(x + y * constants::gridWidth)]};
 
-        if (!activeCell.isOpen()) {
-            utl::Colour transferColour{activeCell.colour()};
-            activeCell.open();
-            activeCell.setColour(colours::gridBG);
+                if (!activeCell.isOpen()) {
+                    utl::Colour transferColour{activeCell.colour()};
+                    activeCell.open();
+                    activeCell.setColour(colours::gridBG);
 
-            Cell& lowerCell{grid[static_cast<size_t>(
-                x + (y + linesCleared) * constants::gridWidth)]};
-            lowerCell.close();
-            lowerCell.setColour(transferColour);
+                    Cell& lowerCell{grid[static_cast<size_t>(
+                        x + (y + 1) * constants::gridWidth)]};
+                    lowerCell.close();
+                    lowerCell.setColour(transferColour);
+                }
+            }
         }
     }
 }
