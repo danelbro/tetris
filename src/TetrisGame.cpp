@@ -28,6 +28,8 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
       grid{screen, *this, colours::gridWalls},
       activeTetro{screen, grid, {}, colours::gridBG, I_tetromino}, entities_{},
       possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
+      displayBoxTitleFont(utl::createFont(constants::displayBoxFontPath,
+                                          constants::displayBoxFontSize)),
       displayBox{screen}, keyMap{}, canRotate{true}, canMove{true},
       canSoftdrop{true}
 {
@@ -54,6 +56,24 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
          ++keyInt) {
         keyMap[static_cast<utl::KeyFlag>(keyInt)] = false;
     }
+
+    auto heldTitle{std::make_unique<utl::TextObject>(screen, renderer,
+                                                     displayBoxTitleFont)};
+    heldTitle->loadFromRenderedText("HELD", colours::titleText);
+    heldTitle->recentre();
+    double xPos{
+        (displayBox.pos().x
+         + ((constants::displayCellWidth * constants::displayBoxGridWidth
+             + (constants::displayBoxWallsThickness * 2))
+            / 2.0))
+        - (heldTitle->size().x / 2.0)};
+    double yPos{
+        displayBox.pos().y
+        + (constants::displayCellHeight * constants::displayBoxGridHeight)
+        + (constants::displayBoxWallsThickness * 2)
+        + constants::displayBoxTitleBuffer};
+    heldTitle->setPos({xPos, yPos});
+    entities_.emplace_back(std::move(heldTitle));
 }
 
 std::string

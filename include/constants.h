@@ -60,4 +60,8 @@ inline constexpr double displayBoxPosX{
                            + (displayCellWidth * displayBoxGridWidth))
        / 2)};
 inline constexpr double displayBoxPosY{gridPosY + gridWallThickness};
+inline const std::filesystem::path displayBoxFontPath{
+    "data/Silkscreen-Regular.ttf"};
+inline constexpr int32_t displayBoxFontSize{32};
+inline constexpr int32_t displayBoxTitleBuffer{10};
 }  // namespace constants

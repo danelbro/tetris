@@ -43,6 +43,7 @@ private:
     std::uniform_int_distribution<std::mt19937::result_type> tetroDist;
     int score;
 
+    utl::Font displayBoxTitleFont;
     DisplayBox displayBox;
 
     std::unordered_map<utl::KeyFlag, bool> keyMap;
