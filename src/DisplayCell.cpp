@@ -7,15 +7,16 @@
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 
-DisplayCell::DisplayCell(utl::Box& screen, const utl::Colour& colour,
-                         DisplayBox& grid, const GridPoint& coord)
+DisplayCell::DisplayCell(utl::Box& screen, const utl::Vec2d& startPos,
+    const utl::Colour& colour, DisplayBox& grid, const GridPoint& coord)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL),
                   screen,
-                  {constants::displayBoxPosX
+                  {startPos.x
                        + constants::displayBoxWallsThickness
                        + (constants::displayCellWidth * coord.x),
-                   constants::displayBoxPosY
+                   startPos.y
                        + constants::displayBoxWallsThickness
                        + (constants::displayCellWidth * coord.y)}},
       col_{colour}, grid_{grid}, coord_{coord}, renderMe_{true},

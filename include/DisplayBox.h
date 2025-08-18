@@ -7,13 +7,14 @@
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 #include <vector>
 
 struct DisplayCell;
 
 class DisplayBox : public utl::Entity {
 public:
-    DisplayBox(utl::Box& screen);
+    DisplayBox(utl::Box& screen, utl::Vec2d pos);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;

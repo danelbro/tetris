@@ -16,6 +16,7 @@
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
+#include <utl_TextObject.hpp>
 
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
@@ -30,8 +31,12 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
       possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
       displayBoxTitleFont(utl::createFont(constants::displayBoxFontPath,
                                           constants::displayBoxFontSize)),
-      displayBox{screen}, keyMap{}, canRotate{true}, canMove{true},
-      canSoftdrop{true}
+    heldDisplayBox{ screen, {constants::heldDisplayBoxPosX,
+    constants::heldDisplayBoxPosY} },
+    nextDisplayBox{ screen, {constants::nextDisplayBoxPosX,
+    constants::nextDisplayBoxPosY} },
+    keyMap{}, canRotate{ true },
+    canMove{ true },  canSoftdrop{true}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -50,6 +55,7 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
         0, constants::tetrominoes - 1};
 
     fillShapeQueue();
+    nextDisplayBox.activate();
     resetActiveTetro();
 
     for (int keyInt{utl::KeyFlag::K_LEFT}; keyInt != utl::KeyFlag::K_TOTAL;
@@ -61,19 +67,37 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
                                                      displayBoxTitleFont)};
     heldTitle->loadFromRenderedText("HELD", colours::titleText);
     heldTitle->recentre();
-    double xPos{
-        (displayBox.pos().x
+    double heldXPos{
+        (heldDisplayBox.pos().x
          + ((constants::displayCellWidth * constants::displayBoxGridWidth
              + (constants::displayBoxWallsThickness * 2))
             / 2.0))
         - (heldTitle->size().x / 2.0)};
-    double yPos{
-        displayBox.pos().y
+    double heldYPos{
+        heldDisplayBox.pos().y
         + (constants::displayCellHeight * constants::displayBoxGridHeight)
         + (constants::displayBoxWallsThickness * 2)
         + constants::displayBoxTitleBuffer};
-    heldTitle->setPos({xPos, yPos});
+    heldTitle->setPos({heldXPos, heldYPos});
+
+    auto nextTitle{ std::make_unique<utl::TextObject>(screen,renderer,displayBoxTitleFont) };
+    nextTitle->loadFromRenderedText("NEXT", colours::titleText);
+    nextTitle->recentre();
+    double nextXPos{
+        (nextDisplayBox.pos().x
+            + ((constants::displayCellWidth * constants::displayBoxGridWidth
+                + (constants::displayBoxWallsThickness * 2))
+                / 2.0))
+            - (nextTitle->size().x / 2.0) };
+    double nextYPos{
+        nextDisplayBox.pos().y
+        + (constants::displayCellHeight * constants::displayBoxGridHeight)
+        + (constants::displayBoxWallsThickness * 2)
+        + constants::displayBoxTitleBuffer };
+    nextTitle->setPos({nextXPos, nextYPos});
+
     entities_.emplace_back(std::move(heldTitle));
+    entities_.emplace_back(std::move(nextTitle));
 }
 
 std::string
@@ -147,7 +171,8 @@ std::string TetrisGame::update(double t, double dt)
 void TetrisGame::render(double, double)
 {
     utl::clearScreen(renderer());
-    displayBox.render(renderer());
+    heldDisplayBox.render(renderer());
+    nextDisplayBox.render(renderer());
     grid.render(renderer());
     activeTetro.render(renderer());
     for (const auto& entity : entities_) {
@@ -160,6 +185,7 @@ void TetrisGame::resetActiveTetro()
 {
     const TetrominoShape& newShape{upcomingShapes_.front()};
     upcomingShapes_.pop();
+    nextDisplayBox.updateShape(upcomingShapes_.front());
 
     activeTetro.reset(newShape);
 }
@@ -168,16 +194,16 @@ void TetrisGame::holdTetro()
 {
     TetrominoShape newHeld{activeTetro.shape()};
 
-    if (displayBox.isActivated()) {
-        TetrominoShape newActive{displayBox.activeShape()};
-        displayBox.activate();
-        displayBox.updateShape(newHeld);
-        displayBox.activate();
+    if (heldDisplayBox.isActivated()) {
+        TetrominoShape newActive{heldDisplayBox.activeShape()};
+        heldDisplayBox.activate();
+        heldDisplayBox.updateShape(newHeld);
+        heldDisplayBox.activate();
         activeTetro.reset(newActive);
     } else {
-        displayBox.activate();
-        displayBox.updateShape(newHeld);
-        displayBox.activate();
+        heldDisplayBox.activate();
+        heldDisplayBox.updateShape(newHeld);
+        heldDisplayBox.activate();
         resetActiveTetro();
     }
 }

@@ -5,21 +5,21 @@
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
-#include "utl_SDLInterface.hpp"
 
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
+#include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 
-DisplayBox::DisplayBox(utl::Box& screen)
+DisplayBox::DisplayBox(utl::Box& screen, utl::Vec2d pos)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX),
-                  screen,
-                  {constants::displayBoxPosX, constants::displayBoxPosY}},
+                  screen, pos},
       walls{}, internalGrid{}, isActive{false}, displayedShape{Z_tetromino}
 {
     for (size_t y{0}; y < constants::displayBoxGridHeight; ++y) {
         for (size_t x{0}; x < constants::displayBoxGridWidth; ++x) {
             internalGrid.emplace_back(
-                DisplayCell{screen,
+                DisplayCell{screen, pos,
                             colours::gridBG,
                             *this,
                             {static_cast<int>(x), static_cast<int>(y)}});
@@ -130,7 +130,7 @@ static void readShape(std::vector<DisplayCell>& grid, TetrominoShape& shape)
 {
     // we always want to display the shape in spawn orientation
     auto& current_shape{shape.at(0)};
-    auto col{determineColour(shape)};
+    auto& col{determineColour(shape)};
     int xOffset{determineXOffset(shape)};
     int yOffset{determineYOffset(shape)};
 

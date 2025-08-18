@@ -54,14 +54,24 @@ inline constexpr int displayBoxGridHeight{shapeHeight + 2};
 inline constexpr int displayCellWidth{cellWidth / 2};
 inline constexpr int displayCellHeight{cellHeight / 2};
 inline constexpr int displayBoxWallsThickness{gridWallThickness / 2};
-inline constexpr double displayBoxPosX{
+inline constexpr int32_t displayBoxFontSize{ 32 };
+inline const std::filesystem::path displayBoxFontPath{
+    "data/Silkscreen-Regular.ttf" };
+inline constexpr int32_t displayBoxTitleBuffer{ 10 };
+
+inline constexpr double heldDisplayBoxPosX{
     (gridPosX * 2 / 3)
     - (static_cast<double>((displayBoxWallsThickness * 2)
                            + (displayCellWidth * displayBoxGridWidth))
        / 2)};
-inline constexpr double displayBoxPosY{gridPosY + gridWallThickness};
-inline const std::filesystem::path displayBoxFontPath{
-    "data/Silkscreen-Regular.ttf"};
-inline constexpr int32_t displayBoxFontSize{32};
-inline constexpr int32_t displayBoxTitleBuffer{10};
+inline constexpr double heldDisplayBoxPosY{gridPosY + gridWallThickness};
+
+inline constexpr double gridRightX{ gridPosX + (gridWallThickness * 2)
++ (gridWidth * cellWidth) };
+inline constexpr double nextDisplayBoxPosX{
+    gridRightX + ((screenWidth - gridRightX) / 3.0)
+    - (static_cast<double>((displayBoxWallsThickness * 2)
+        + (displayCellWidth * displayBoxGridWidth))
+        / 2)};
+inline constexpr double nextDisplayBoxPosY{ gridPosY + gridWallThickness };
 }  // namespace constants

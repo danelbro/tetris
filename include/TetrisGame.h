@@ -44,7 +44,9 @@ private:
     int score;
 
     utl::Font displayBoxTitleFont;
-    DisplayBox displayBox;
+
+    DisplayBox heldDisplayBox;
+    DisplayBox nextDisplayBox;
 
     std::unordered_map<utl::KeyFlag, bool> keyMap;
     bool canRotate;
