@@ -196,14 +196,11 @@ void TetrisGame::holdTetro()
 
     if (heldDisplayBox.isActivated()) {
         TetrominoShape newActive{heldDisplayBox.activeShape()};
-        heldDisplayBox.activate();
         heldDisplayBox.updateShape(newHeld);
-        heldDisplayBox.activate();
         activeTetro.reset(newActive);
     } else {
         heldDisplayBox.activate();
         heldDisplayBox.updateShape(newHeld);
-        heldDisplayBox.activate();
         resetActiveTetro();
     }
 }
