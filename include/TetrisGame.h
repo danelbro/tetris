@@ -50,6 +50,9 @@ private:
 
     std::unordered_map<utl::KeyFlag, bool> keyMap;
     bool canRotate;
+    double rotateTimer;
     bool canMove;
+    double moveTimer;
     bool canSoftdrop;
+    double softdropTimer;
 };

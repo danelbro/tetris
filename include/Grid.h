@@ -24,6 +24,7 @@ public:
     void notifyBlockedTetro(const Tetromino& tetromino);
 
     const utl::Vec2d innerTopLeftPt;
+    const utl::Vec2d& size() const override { return size_; }
 
 private:
     void placeWalls();
@@ -39,4 +40,5 @@ private:
     int linesClearedTotal;
     int numLinesClearedThisFrame;
     std::vector<int> linesClearedThisFrame;
+    utl::Vec2d size_;
 };

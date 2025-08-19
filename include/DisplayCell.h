@@ -11,14 +11,17 @@ class DisplayBox;
 
 struct DisplayCell : public utl::Entity {
     DisplayCell(utl::Box& screen, const utl::Vec2d& startPos,
-        const utl::Colour& colour, DisplayBox& grid, const GridPoint& coord);
+                const utl::Colour& colour, DisplayBox& grid,
+                const GridPoint& coord);
 
-    void update (double t, double dt) override;
-    void render (utl::Renderer& renderer) override;
+    void update(double t, double dt) override;
+    void render(utl::Renderer& renderer) override;
+    const utl::Vec2d& size() const override { return size_; };
 
     utl::Colour col_;
     DisplayBox& grid_;
     GridPoint coord_;
     bool renderMe_;
     utl::Rect rect_;
+    utl::Vec2d size_;
 };

@@ -31,12 +31,14 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
       possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
       displayBoxTitleFont(utl::createFont(constants::displayBoxFontPath,
                                           constants::displayBoxFontSize)),
-    heldDisplayBox{ screen, {constants::heldDisplayBoxPosX,
-    constants::heldDisplayBoxPosY} },
-    nextDisplayBox{ screen, {constants::nextDisplayBoxPosX,
-    constants::nextDisplayBoxPosY} },
-    keyMap{}, canRotate{ true },
-    canMove{ true },  canSoftdrop{true}
+      heldDisplayBox{
+          screen,
+          {constants::heldDisplayBoxPosX, constants::heldDisplayBoxPosY}},
+      nextDisplayBox{
+          screen,
+          {constants::nextDisplayBoxPosX, constants::nextDisplayBoxPosY}},
+      keyMap{}, canRotate{true}, rotateTimer{0.0}, canMove{true},
+      moveTimer{0.0}, canSoftdrop{true}, softdropTimer{0.0}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -63,38 +65,19 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
         keyMap[static_cast<utl::KeyFlag>(keyInt)] = false;
     }
 
-    auto heldTitle{std::make_unique<utl::TextObject>(screen, renderer,
-                                                     displayBoxTitleFont)};
-    heldTitle->loadFromRenderedText("HELD", colours::titleText);
-    heldTitle->recentre();
-    double heldXPos{
-        (heldDisplayBox.pos().x
-         + ((constants::displayCellWidth * constants::displayBoxGridWidth
-             + (constants::displayBoxWallsThickness * 2))
-            / 2.0))
-        - (heldTitle->size().x / 2.0)};
-    double heldYPos{
-        heldDisplayBox.pos().y
-        + (constants::displayCellHeight * constants::displayBoxGridHeight)
-        + (constants::displayBoxWallsThickness * 2)
-        + constants::displayBoxTitleBuffer};
-    heldTitle->setPos({heldXPos, heldYPos});
+    auto heldTitle{std::make_unique<utl::TextObject>(
+        screen, renderer, displayBoxTitleFont, "HELD", colours::titleText)};
+    heldTitle->recentreToEntityX(heldDisplayBox);
+    heldTitle->setPos(
+        {heldTitle->pos().x, heldDisplayBox.pos().y + heldDisplayBox.size().y
+                                 + constants::displayBoxTitleBuffer});
 
-    auto nextTitle{ std::make_unique<utl::TextObject>(screen,renderer,displayBoxTitleFont) };
-    nextTitle->loadFromRenderedText("NEXT", colours::titleText);
-    nextTitle->recentre();
-    double nextXPos{
-        (nextDisplayBox.pos().x
-            + ((constants::displayCellWidth * constants::displayBoxGridWidth
-                + (constants::displayBoxWallsThickness * 2))
-                / 2.0))
-            - (nextTitle->size().x / 2.0) };
-    double nextYPos{
-        nextDisplayBox.pos().y
-        + (constants::displayCellHeight * constants::displayBoxGridHeight)
-        + (constants::displayBoxWallsThickness * 2)
-        + constants::displayBoxTitleBuffer };
-    nextTitle->setPos({nextXPos, nextYPos});
+    auto nextTitle{std::make_unique<utl::TextObject>(
+        screen, renderer, displayBoxTitleFont, "NEXT", colours::titleText)};
+    nextTitle->recentreToEntityX(nextDisplayBox);
+    nextTitle->setPos(
+        {nextTitle->pos().x, nextDisplayBox.pos().y + nextDisplayBox.size().y
+                                 + constants::displayBoxTitleBuffer});
 
     entities_.emplace_back(std::move(heldTitle));
     entities_.emplace_back(std::move(nextTitle));
@@ -130,9 +113,11 @@ TetrisGame::handle_input(double, double,
     if (canRotate) {
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
             activeTetro.rotate(1);
+            canRotate = false;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
             activeTetro.rotate(-1);
+            canRotate = false;
         }
     }
 
@@ -140,8 +125,10 @@ TetrisGame::handle_input(double, double,
     if (canMove) {
         if (keyState.at(utl::KeyFlag::K_LEFT)) {
             activeTetro.move(-1);
+            canMove = false;
         } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
             activeTetro.move(1);
+            canMove = false;
         }
     }
 
@@ -149,6 +136,7 @@ TetrisGame::handle_input(double, double,
     if (canSoftdrop) {
         if (keyState.at(utl::KeyFlag::K_DOWN)) {
             activeTetro.soft_drop();
+            canSoftdrop = false;
         }
     }
 
@@ -159,6 +147,30 @@ std::string TetrisGame::update(double t, double dt)
 {
     if (upcomingShapes_.size() < constants::shapeQueueMin)
         fillShapeQueue();
+
+    if (!canRotate) {
+        rotateTimer += dt;
+        if (rotateTimer >= constants::rotateTimerMax) {
+            canRotate = true;
+            rotateTimer = 0.0;
+        }
+    }
+
+    if (!canMove) {
+        moveTimer += dt;
+        if (moveTimer >= constants::moveTimerMax) {
+            canMove = true;
+            moveTimer = 0.0;
+        }
+    }
+
+    if (!canSoftdrop) {
+        softdropTimer += dt;
+        if (softdropTimer >= constants::softdropTimerMax) {
+            canSoftdrop = true;
+            softdropTimer = 0.0;
+        }
+    }
 
     grid.update(t, dt);
     activeTetro.update(t, dt);

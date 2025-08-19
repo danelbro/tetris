@@ -12,14 +12,21 @@
 #include <utl_Vec2d.hpp>
 
 DisplayBox::DisplayBox(utl::Box& screen, utl::Vec2d pos)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX),
-                  screen, pos},
-      walls{}, internalGrid{}, isActive{false}, displayedShape{Z_tetromino}
+    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX), screen,
+                  pos},
+      walls{}, internalGrid{}, isActive{false}, displayedShape{Z_tetromino},
+      size_{
+          (constants::displayBoxWallsThickness * 2)
+              + (constants::displayBoxGridWidth * constants::displayCellWidth),
+          (constants::displayBoxWallsThickness * 2)
+              + (constants::displayBoxGridHeight
+                 * constants::displayCellHeight)}
 {
     for (size_t y{0}; y < constants::displayBoxGridHeight; ++y) {
         for (size_t x{0}; x < constants::displayBoxGridWidth; ++x) {
             internalGrid.emplace_back(
-                DisplayCell{screen, pos,
+                DisplayCell{screen,
+                            pos,
                             colours::gridBG,
                             *this,
                             {static_cast<int>(x), static_cast<int>(y)}});
@@ -105,9 +112,13 @@ static const utl::Colour& determineColour(const TetrominoShape& shape)
 static int determineXOffset(TetrominoShape& shape)
 {
     switch (shape.id) {
-    case 'I': case 'O': case 'T': case 'S':
+    case 'I':
+    case 'O':
+    case 'T':
+    case 'S':
         return 1;
-    case 'L': case 'Z':
+    case 'L':
+    case 'Z':
         return 2;
     default:
         return 1;
@@ -119,7 +130,12 @@ static int determineYOffset(TetrominoShape& shape)
     switch (shape.id) {
     case 'I':
         return 1;
-    case 'O': case 'T': case 'J': case 'L': case 'S': case 'Z':
+    case 'O':
+    case 'T':
+    case 'J':
+    case 'L':
+    case 'S':
+    case 'Z':
         return 2;
     default:
         return 1;

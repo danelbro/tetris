@@ -22,7 +22,8 @@ DisplayCell::DisplayCell(utl::Box& screen, const utl::Vec2d& startPos,
       col_{colour}, grid_{grid}, coord_{coord}, renderMe_{true},
       rect_{static_cast<float>(m_pos.x), static_cast<float>(m_pos.y),
             static_cast<float>(constants::displayCellWidth),
-            static_cast<float>(constants::displayCellHeight)}
+            static_cast<float>(constants::displayCellHeight)},
+      size_{constants::displayCellWidth, constants::displayCellHeight}
 {}
 
 void DisplayCell::update(double, double) {}

@@ -150,10 +150,7 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topLeft_{grid_point},
       shape_{}, col_{colour}, tickTime{constants::initialTickTime},
-      timeSinceTick{0.0}, rotationTimer{0.0}, rotationLengthInSecs{0.09},
-      moveTimer{0.0}, moveLengthInSecs{0.08}, dropTimer{0.0},
-      dropLengthInSecs{0.05}, isRotating{false}, isMoving{false},
-      isDropping{false}, currentRotation_{0}
+      timeSinceTick{0.0}, currentRotation_{0}, size_{} // todo
 {
     init();
 }
@@ -171,33 +168,6 @@ void Tetromino::init()
 void Tetromino::update(double, double dt)
 {
     readShape();
-
-    if (isRotating) {
-        if (rotationTimer < rotationLengthInSecs)
-            rotationTimer += dt;
-        else {
-            rotationTimer = 0.0;
-            isRotating = false;
-        }
-    }
-
-    if (isMoving) {
-        if (moveTimer < moveLengthInSecs)
-            moveTimer += dt;
-        else {
-            moveTimer = 0.0;
-            isMoving = false;
-        }
-    }
-
-    if (isDropping) {
-        if (dropTimer < dropLengthInSecs)
-            dropTimer += dt;
-        else {
-            dropTimer = 0.0;
-            isDropping = false;
-        }
-    }
 
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime) {
@@ -262,19 +232,11 @@ void Tetromino::repositionInScreenSpace()
 
 void Tetromino::move(int dir)
 {
-    if (isMoving)
-        return;
-
     repositionInGridSpace(dir, 0);
-
-    isMoving = true;
 }
 
 void Tetromino::rotate(int dir)
 {
-    if (isRotating || tetrominoShape_.id == 'O')
-        return;
-
     size_t new_rotation{
         static_cast<size_t>((static_cast<int>(currentRotation_) + dir
                              + static_cast<int>(constants::rotations))
@@ -288,7 +250,6 @@ void Tetromino::rotate(int dir)
             currentRotation_ = new_rotation;
             topLeft_.x = testPacket.topLeft.x;
             topLeft_.y = testPacket.topLeft.y;
-            isRotating = true;
             break;
         }
     }
@@ -296,12 +257,7 @@ void Tetromino::rotate(int dir)
 
 void Tetromino::soft_drop()
 {
-    if (isDropping)
-        return;
-
     repositionInGridSpace(0, 1);
-
-    isDropping = true;
 }
 
 void Tetromino::reset(const TetrominoShape& newShape)

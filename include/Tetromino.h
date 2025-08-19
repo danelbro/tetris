@@ -31,6 +31,7 @@ public:
     const TetrominoShape& shape() const { return tetrominoShape_; }
     const size_t& currentRotation() const { return currentRotation_; }
     const GridPoint& topLeft() const { return topLeft_; }
+    const utl::Vec2d& size() const override {return size_;}
 
 private:
     void init();
@@ -46,14 +47,6 @@ private:
     utl::Colour col_;
     double tickTime;
     double timeSinceTick;
-    double rotationTimer;
-    double rotationLengthInSecs;
-    double moveTimer;
-    double moveLengthInSecs;
-    double dropTimer;
-    double dropLengthInSecs;
-    bool isRotating;
-    bool isMoving;
-    bool isDropping;
     size_t currentRotation_;
+    utl::Vec2d size_;
 };

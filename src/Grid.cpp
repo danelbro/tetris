@@ -27,7 +27,12 @@ Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
       tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour},
-      linesClearedTotal{0}, numLinesClearedThisFrame{0}, linesClearedThisFrame{}
+      linesClearedTotal{0}, numLinesClearedThisFrame{0},
+      linesClearedThisFrame{},
+      size_{(constants::gridWallThickness * 2)
+                + (constants::gridWidth * constants::cellWidth),
+            (constants::gridWallThickness * 2)
+                + constants::gridHeight * constants::cellHeight}
 {
     linesClearedThisFrame.reserve(static_cast<size_t>(constants::gridHeight));
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {

@@ -38,6 +38,7 @@ public:
     void setColour(const utl::Colour& colour) { col = colour; }
 
     const utl::Colour& colour() const { return col; }
+    const utl::Vec2d& size() const override { return size_; }
 
     bool renderMe() const { return renderMe_; }
     bool isOpen() const { return isOpen_; }
@@ -47,7 +48,7 @@ public:
 
     const GridPoint& coord() const { return coord_; }
 
-    // NB these functions DO NOT cal set_pos() or update_rect()! You will need
+    // NB these functions DO NOT call set_pos() or update_rect()! You will need
     // to call them separately
     void setCoord(const GridPoint&);
     void setCoord(const int x, const int y);
@@ -59,4 +60,5 @@ private:
     Grid& grid_;
     GridPoint coord_;
     bool isOpen_;
+    utl::Vec2d size_;
 };

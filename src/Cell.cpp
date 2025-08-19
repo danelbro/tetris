@@ -13,13 +13,14 @@ static utl::Box defaultBox{0, 0};
 
 Cell::Cell(utl::Box& screen, Grid& grid)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
-      rect{}, col{}, renderMe_{false}, grid_{grid}, coord_{}, isOpen_{true}
+      rect{}, col{}, renderMe_{false}, grid_{grid}, coord_{}, isOpen_{true},
+      size_{}
 {}
 
 Cell::Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
       rect{}, col{colour}, renderMe_{false}, grid_{grid}, coord_{},
-      isOpen_{true}
+      isOpen_{true}, size_{}
 {}
 
 Cell::Cell(utl::Box& screen, int x, int y, int w, int h,
@@ -28,14 +29,15 @@ Cell::Cell(utl::Box& screen, int x, int y, int w, int h,
                   screen,
                   {x, y}},
       rect{x, y, w, h}, col{colour}, renderMe_{false}, grid_{grid},
-      coord_{coord}, isOpen_{true}
+      coord_{coord}, isOpen_{true},
+      size_{static_cast<double>(w), static_cast<double>(h)}
 {}
 
 Cell::Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid,
            const GridPoint& coord)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
       rect{}, col{colour}, renderMe_{false}, grid_{grid}, coord_{coord},
-      isOpen_{true}
+      isOpen_{true}, size_{}
 {
     set_pos({static_cast<double>(grid_.innerTopLeftPt.x + coord_.x),
              static_cast<double>(grid_.innerTopLeftPt.y + coord_.y)});
@@ -44,7 +46,7 @@ Cell::Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid,
 Cell::Cell(const Cell& old)
     : utl::Entity{old.m_type, old.m_screenSpace, old.m_pos}, rect{},
       col{old.col}, renderMe_{false}, grid_{old.grid_}, coord_{old.coord_},
-      isOpen_{old.isOpen_}
+      isOpen_{old.isOpen_}, size_{old.size_}
 {
     if (old.rect.get()) {
         rect.reset(old.rect.x(), old.rect.y(), old.rect.w(), old.rect.h());
@@ -55,7 +57,7 @@ Cell::Cell(Cell&& old) noexcept
     : utl::Entity{old.m_type, old.m_screenSpace, old.m_pos},
       rect{std::move(old.rect)}, col{std::move(old.col)},
       renderMe_{old.renderMe_}, grid_{old.grid_}, coord_{old.coord_},
-      isOpen_{old.isOpen_}
+      isOpen_{old.isOpen_}, size_{old.size_}
 {}
 
 Cell& Cell::operator=(Cell&& old) noexcept
@@ -67,6 +69,7 @@ Cell& Cell::operator=(Cell&& old) noexcept
     col = std::move(old.col);
     renderMe_ = old.renderMe_;
     isOpen_ = old.isOpen_;
+    size_ = old.size_;
 
     return *this;
 }
@@ -75,6 +78,7 @@ void Cell::update_rect(int x, int y, int w, int h)
 {
     rect.reset(static_cast<float>(x), static_cast<float>(y),
                static_cast<float>(w), static_cast<float>(h));
+    size_ = {static_cast<double>(w), static_cast<double>(h)};
 }
 
 void Cell::set_pos(const utl::Vec2d& newPos)

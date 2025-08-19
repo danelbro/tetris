@@ -25,6 +25,7 @@ public:
     void deactivate();
     void updateShape(const TetrominoShape& newShape);
     const TetrominoShape& activeShape() { return displayedShape; }
+    const utl::Vec2d& size() const override { return size_; }
 
 private:
     void placeWalls();
@@ -33,4 +34,5 @@ private:
     std::vector<DisplayCell> internalGrid;
     bool isActive;
     TetrominoShape displayedShape;
+    utl::Vec2d size_;
 };
