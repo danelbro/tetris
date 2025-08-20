@@ -19,11 +19,10 @@
 
 struct TestPacket {
     TestPacket(TetrominoShape& newShape, Grid& newGrid, GridPoint& point,
-        size_t currentRot, size_t newRot)
-        : shape{ newShape }, grid{ newGrid }, topLeft{ point },
-        currentRotation{ currentRot }, newRotation{ newRot }
-    {
-    }
+               size_t currentRot, size_t newRot)
+        : shape{newShape}, grid{newGrid}, topLeft{point},
+          currentRotation{currentRot}, newRotation{newRot}
+    {}
 
     TetrominoShape shape;
     Grid& grid;
@@ -149,8 +148,8 @@ Tetromino::Tetromino(utl::Box& screen, Grid& grid, const GridPoint& grid_point,
                   screen,
                   {}},
       tetrominoShape_{tetrominoShape}, grid_{grid}, topLeft_{grid_point},
-      shape_{}, col_{colour}, tickTime{constants::initialTickTime},
-      timeSinceTick{0.0}, currentRotation_{0}, size_{} // todo
+      shape_{}, col_{colour}, tickTime_{constants::initialTickTime},
+      timeSinceTick{0.0}, currentRotation_{0}, size_{}  // todo
 {
     init();
 }
@@ -170,10 +169,15 @@ void Tetromino::update(double, double dt)
     readShape();
 
     timeSinceTick += dt;
-    if (timeSinceTick >= tickTime) {
+    if (timeSinceTick >= tickTime_) {
         timeSinceTick = 0.0;
         repositionInGridSpace(0, 1);
     }
+}
+
+void Tetromino::changeTickTime(double newTickTime)
+{
+    tickTime_ = newTickTime;
 }
 
 void Tetromino::render(utl::Renderer& renderer)
@@ -311,26 +315,25 @@ static bool test(TestPacket& tp, int testNo)
 {
     char shapeType{};
     switch (tp.shape.id) {
+    case 'I':
+        shapeType = 'I';
+        break;
     case 'J':
     case 'L':
     case 'S':
     case 'Z':
     case 'T':
-        shapeType = 'O';
+        shapeType = 'O';  // in this context 'O' stands for 'other', because...
         break;
-    case 'I':
-        shapeType = 'I';
-        break;
-    default:
-        shapeType = 'E';
-        break;
+    default:  // the O tetromino doesn't rotate
+        return false;
     }
 
     std::stringstream keyStream{};
 
     keyStream << testNo << shapeType << tp.currentRotation << tp.newRotation;
 
-    std::string key{ keyStream.str() };
+    std::string key{keyStream.str()};
     GridPoint shift{testDB.at(key)};
     GridPoint testPoint{tp.topLeft.x + shift.x, tp.topLeft.y + shift.y};
 

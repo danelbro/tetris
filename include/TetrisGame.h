@@ -16,6 +16,7 @@
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
+#include <utl_TextObject.hpp>
 #include <vector>
 
 class TetrisGame : public utl::Stage {
@@ -33,6 +34,7 @@ public:
 private:
     const TetrominoShape& getRandomShape();
     void fillShapeQueue();
+    void changeLevel();
 
     Grid grid;
     Tetromino activeTetro;
@@ -42,6 +44,9 @@ private:
     std::mt19937 rng;
     std::uniform_int_distribution<std::mt19937::result_type> tetroDist;
     int score;
+    int linesClearedTotal;
+    int linesClearedThisLevel;
+    int level;
 
     utl::Font displayBoxTitleFont;
 
@@ -55,4 +60,8 @@ private:
     double moveTimer;
     bool canSoftdrop;
     double softdropTimer;
+
+    utl::TextObject scoreText;
+    utl::TextObject levelText;
+    utl::TextObject linesText;
 };

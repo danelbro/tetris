@@ -75,7 +75,10 @@ inline constexpr double nextDisplayBoxPosX{
        / 2)};
 inline constexpr double nextDisplayBoxPosY{gridPosY + gridWallThickness};
 
-inline constexpr double rotateTimerMax{ 0.10 };
-inline constexpr double moveTimerMax{ 0.05 };
-inline constexpr double softdropTimerMax{ 0.05 };
+inline constexpr double rotateTimerMax{0.10};
+inline constexpr double moveTimerMax{0.05};
+inline constexpr double softdropTimerMax{0.05};
+
+inline constexpr int maxLevel{15};
+inline constexpr int linesPerLevel{10};
 }  // namespace constants

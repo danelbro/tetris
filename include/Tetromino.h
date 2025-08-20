@@ -25,13 +25,15 @@ public:
     void move(int dir);
     void rotate(int dir);
     void soft_drop();
+    void changeTickTime(double newTickTime);
 
     const utl::Colour& colour() const { return col_; }
 
     const TetrominoShape& shape() const { return tetrominoShape_; }
     const size_t& currentRotation() const { return currentRotation_; }
     const GridPoint& topLeft() const { return topLeft_; }
-    const utl::Vec2d& size() const override {return size_;}
+    const utl::Vec2d& size() const override { return size_; }
+    const double& tickTime() const { return tickTime_; }
 
 private:
     void init();
@@ -45,7 +47,7 @@ private:
     GridPoint topLeft_;
     std::vector<Cell> shape_;
     utl::Colour col_;
-    double tickTime;
+    double tickTime_;
     double timeSinceTick;
     size_t currentRotation_;
     utl::Vec2d size_;
