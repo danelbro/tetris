@@ -14,3 +14,6 @@
 - [X] Saved tetromino
 - [X] Next tetromino
 - [X] Losing and game over screen
+- [ ] Highscores
+- [ ] Sound/music
+- [ ] Cell borders
