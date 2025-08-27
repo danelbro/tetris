@@ -13,3 +13,4 @@
 - [ ] Hard drop/ghost tetromino
 - [X] Saved tetromino
 - [X] Next tetromino
+- [X] Losing and game over screen

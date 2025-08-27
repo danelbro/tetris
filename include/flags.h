@@ -34,6 +34,7 @@ enum class STAGES
 {
     TITLE_SCREEN,
     TETRIS,
+    END_SCREEN,
     STAGES_TOTAL,
     QUIT
 };
@@ -41,11 +42,13 @@ enum class STAGES
 inline const std::unordered_map<STAGES, std::string> STAGES_MAP{
     {STAGES::TITLE_SCREEN, "TITLE_SCREEN"},
     {STAGES::TETRIS, "TETRIS"},
+    {STAGES::END_SCREEN, "END_SCREEN"},
     {STAGES::QUIT, "QUIT"}};
 
 inline const std::unordered_map<std::string, STAGES> STAGES_STRING_MAP{
     {"TITLE_SCREEN", STAGES::TITLE_SCREEN},
     {"TETRIS", STAGES::TETRIS},
+    {"END_SCREEN", STAGES::END_SCREEN},
     {"QUIT", STAGES::QUIT}};
 
 }  // namespace flags

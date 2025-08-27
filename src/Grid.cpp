@@ -11,6 +11,7 @@
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Stage.hpp>
 #include <utl_Vec2d.hpp>
 
 static int countLinesToClear(const std::vector<Cell>& grid,
@@ -20,13 +21,13 @@ static void clearLines(std::vector<Cell>& grid,
 static void applyGravity(std::vector<Cell>& grid,
                          const std::vector<int>& clearedLines);
 
-Grid::Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour)
+Grid::Grid(utl::Box& screen, utl::Stage& owner, const utl::Colour& colour)
     : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
                   screen,
                   {constants::gridPosX, constants::gridPosY}},
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
-      tetrisGame_{tetrisGame}, walls{}, grid{}, col{colour},
+      owner_{owner}, walls{}, grid{}, col{colour},
       linesClearedTotal{0}, numLinesClearedThisFrame{0},
       linesClearedThisFrame{},
       size_{(constants::gridWallThickness * 2)
@@ -125,16 +126,24 @@ void Grid::enableRenderBGCells()
 
 void Grid::notifyBlockedTetro(const Tetromino& tetromino)
 {
+    TetrisGame& tetrisGame{dynamic_cast<TetrisGame&>(owner_)};
     bakeActiveTetromino(tetromino);
-    tetrisGame_.resetActiveTetro();
+    tetrisGame.resetActiveTetro();
 
     numLinesClearedThisFrame = countLinesToClear(grid, linesClearedThisFrame);
 
     if (numLinesClearedThisFrame > 0) {
         clearLines(grid, linesClearedThisFrame);
         applyGravity(grid, linesClearedThisFrame);
-        tetrisGame_.notifyScored(numLinesClearedThisFrame);
+        tetrisGame.notifyScored(numLinesClearedThisFrame);
     }
+}
+
+void Grid::notifyLoss(const Tetromino& tetromino)
+{
+    TetrisGame& tetrisGame{dynamic_cast<TetrisGame&>(owner_)};
+    bakeActiveTetromino(tetromino);
+    tetrisGame.notifyLoss();
 }
 
 void Grid::bakeActiveTetromino(const Tetromino& tetromino)
@@ -210,4 +219,14 @@ static void applyGravity(std::vector<Cell>& grid,
             }
         }
     }
+}
+
+void Grid::setCellColour(int x, int y, utl::Colour colour)
+{
+    grid[static_cast<size_t>(x + y * constants::gridWidth)].setColour(colour);
+}
+
+void Grid::setCellOpen(int x, int y, bool open)
+{
+    grid[static_cast<size_t>(x + y * constants::gridWidth)].setOpen(open);
 }

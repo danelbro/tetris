@@ -30,13 +30,19 @@ public:
     void holdTetro();
     void resetActiveTetro();
     void notifyScored(int linesCleared);
+    void notifyLoss();
+
+    const Grid& grid() const { return grid_; }
+    int getScore() const { return score; }
+    int getLines() const { return linesClearedTotal; }
+    int getLevel() const { return level; }
 
 private:
     const TetrominoShape& getRandomShape();
     void fillShapeQueue();
     void changeLevel();
 
-    Grid grid;
+    Grid grid_;
     Tetromino activeTetro;
     std::vector<std::unique_ptr<utl::Entity>> entities_;
     std::vector<TetrominoShape> possibleShapes_;
@@ -60,6 +66,8 @@ private:
     double moveTimer;
     bool canSoftdrop;
     double softdropTimer;
+
+    bool running;
 
     utl::TextObject scoreText;
     utl::TextObject levelText;

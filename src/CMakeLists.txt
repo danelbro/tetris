@@ -4,6 +4,7 @@ target_sources(tetris PRIVATE
   "Cell.cpp" "../include/Cell.h"
   "DisplayBox.cpp" "../include/DisplayBox.h"
   "DisplayCell.cpp" "../include/DisplayCell.h"
+  "EndScreen.cpp" "../include/EndScreen.h"
   "Grid.cpp" "../include/Grid.h"
   "TetrisApp.cpp" "../include/TetrisApp.h"
   "TetrisGame.cpp" "../include/TetrisGame.h"

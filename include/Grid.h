@@ -7,21 +7,25 @@
 #include <array>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
+#include <utl_Stage.hpp>
 #include <utl_SDLInterface.hpp>
 
 class Tetromino;
-class TetrisGame;
 
 class Grid : public utl::Entity {
 public:
-    Grid(utl::Box& screen, TetrisGame& tetrisGame, const utl::Colour& colour);
+    Grid(utl::Box& screen, utl::Stage& owner, const utl::Colour& colour);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
 
     const Cell& get(int x, int y) const;
 
+    void setCellColour (int x, int y, utl::Colour col);
+    void setCellOpen (int x, int y, bool open);
+
     void notifyBlockedTetro(const Tetromino& tetromino);
+    void notifyLoss(const Tetromino& tetromino);
 
     const utl::Vec2d innerTopLeftPt;
     const utl::Vec2d& size() const override { return size_; }
@@ -31,7 +35,7 @@ private:
     void placeBGCells();
     void enableRenderBGCells();
     void bakeActiveTetromino(const Tetromino& tetromino);
-    TetrisGame& tetrisGame_;
+    utl::Stage& owner_;
 
     std::array<utl::Rect, constants::gridWalls> walls;
     std::vector<Cell> grid;

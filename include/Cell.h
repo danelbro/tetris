@@ -36,6 +36,7 @@ public:
     void stopRendering() { renderMe_ = false; }
 
     void setColour(const utl::Colour& colour) { col = colour; }
+    void setOpen(bool open) { isOpen_ = open; }
 
     const utl::Colour& colour() const { return col; }
     const utl::Vec2d& size() const override { return size_; }

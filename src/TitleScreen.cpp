@@ -50,8 +50,7 @@ TitleScreen::handle_input(double, double,
 {
     utl::process_input(screen(), windowID(), keyState);
 
-    if (keyState.at(utl::KeyFlag::QUIT)
-        || keyState.at(utl::KeyFlag::K_ESCAPE)) {
+    if (keyState.at(utl::KeyFlag::QUIT)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
     }
 

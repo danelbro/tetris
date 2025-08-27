@@ -274,6 +274,8 @@ void Tetromino::reset(const TetrominoShape& newShape)
     currentRotation_ = 0;
 
     init();
+    if (!isShapeInSpace(tetrominoShape_, currentRotation_, grid_, topLeft_))
+        grid_.notifyLoss(*this);
 }
 
 static const utl::Colour& determineColour(const TetrominoShape& shape)

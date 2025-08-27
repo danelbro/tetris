@@ -1,5 +1,6 @@
 #include "TetrisApp.h"
 
+#include "EndScreen.h"
 #include "TetrisGame.h"
 #include "TitleScreen.h"
 #include "constants.h"
@@ -46,6 +47,16 @@ void TetrisApp::trigger_stage_change(const std::string& next)
     case flags::STAGES::TETRIS:
         m_stageManager.add_stage<TetrisGame>(next, screen, windowID, renderer);
         break;
+    case flags::STAGES::END_SCREEN: {
+        TetrisGame* currentTetris{
+            dynamic_cast<TetrisGame*>(m_stageManager.get_current_stage())};
+        ScoresPacket scores{currentTetris->getScore(),
+                            currentTetris->getLevel(),
+                            currentTetris->getLines()};
+        m_stageManager.add_stage<EndScreen>(next, screen, windowID, renderer,
+                                            currentTetris->grid(), scores);
+        break;
+    }
     case flags::STAGES::QUIT:
         break;
     default:
