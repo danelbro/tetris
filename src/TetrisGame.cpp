@@ -322,12 +322,15 @@ void TetrisGame::changeLevel()
     if (linesClearedThisLevel < constants::linesPerLevel)
         return;
 
+    if (level + 1 > constants::maxLevel)
+        return;
+
     ++level;
 
     levelText.updateText(std::to_string(level));
     levelText.recentreToEntityX(nextDisplayBox);
 
-    activeTetro.changeTickTime(1.0 - (0.1 * level));
+    activeTetro.changeTickTime(1.0 - (0.0625 * level));
 
     linesClearedThisLevel -= constants::linesPerLevel;
 }
