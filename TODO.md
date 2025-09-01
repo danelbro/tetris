@@ -1,19 +1,19 @@
 # Tetris to-do
 
-- [X] Line clearing & tetris
-- [X] Scoring
-  - [X] Better scoring?
+- [x] Line clearing & tetris
+- [x] Scoring
+  - [x] Better scoring?
   - [ ] Detect and score t-spins
   - [ ] T-spin and tetris display
   - [ ] Combos
-- [X] Scoreboard
+- [x] Scoreboard
 - [ ] Controls display
-- [X] Wall kicks
-  - [X] Tetrominoes should be able to move left and right while rotating
+- [x] Wall kicks
+  - [x] Tetrominoes should be able to move left and right while rotating
 - [ ] Hard drop/ghost tetromino
-- [X] Saved tetromino
-- [X] Next tetromino
-- [X] Losing and game over screen
+- [x] Saved tetromino
+- [x] Next tetromino
+- [x] Losing and game over screen
 - [ ] Highscores
 - [ ] Sound/music
-- [ ] Cell borders
+- [x] Cell borders
