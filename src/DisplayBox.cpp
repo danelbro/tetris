@@ -154,14 +154,14 @@ static void readShape(std::vector<DisplayCell>& grid, TetrominoShape& shape)
         grid[static_cast<size_t>(
                  (cell.x + xOffset)
                  + ((cell.y + yOffset) * constants::displayBoxGridWidth))]
-            .col_ = col;
+            .setCol(col);
     }
 }
 
 void DisplayBox::updateShape(const TetrominoShape& newShape)
 {
     displayedShape = newShape;
-    for (auto& cell : internalGrid) cell.col_ = colours::gridBG;
+    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
     if (isActive)
         readShape(internalGrid, displayedShape);
 }
@@ -175,5 +175,5 @@ void DisplayBox::activate()
 void DisplayBox::deactivate()
 {
     isActive = false;
-    for (auto& cell : internalGrid) cell.col_ = colours::gridBG;
+    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
 }

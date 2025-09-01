@@ -4,6 +4,7 @@
 #pragma once
 
 #include "GridPoint.h"
+#include "constants.h"
 
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -35,7 +36,7 @@ public:
     void makeRender() { renderMe_ = true; }
     void stopRendering() { renderMe_ = false; }
 
-    void setColour(const utl::Colour& colour) { col = colour; }
+    void setColour(const utl::Colour& colour);
     void setOpen(bool open) { isOpen_ = open; }
 
     const utl::Colour& colour() const { return col; }
@@ -56,7 +57,9 @@ public:
 
 private:
     utl::Rect rect;
+    std::array<utl::Rect, constants::gridWalls> borders;
     utl::Colour col;
+    utl::Colour borderCol;
     bool renderMe_;
     Grid& grid_;
     GridPoint coord_;

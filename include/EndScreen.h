@@ -21,12 +21,12 @@ public:
               utl::Renderer& renderer, const Grid& grid,
               const ScoresPacket& scoresPacket);
 
-    std::string update(double t, double dt) override;
+    std::string update(double t, double dt);
     std::string
     handle_input(double t, double dt,
-                 std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override;
+                 std::array<bool, utl::KeyFlag::K_TOTAL>& keyState);
 
-    void render(double t, double dt) override;
+    void render(double t, double dt);
 
 private:
     Grid grid_;

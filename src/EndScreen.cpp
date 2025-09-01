@@ -2,10 +2,11 @@
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
-#include "utl_SDLInterface.hpp"
 
 #include <string>
+#include <utl_Box.hpp>
 #include <utl_Stage.hpp>
+#include <utl_SDLInterface.hpp>
 
 EndScreen::EndScreen(utl::Box& screen_space, uint32_t windowID,
                      utl::Renderer& rendererRef, const Grid& grid,
@@ -89,7 +90,8 @@ std::string
 EndScreen::handle_input(double, double,
                         std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
-    utl::process_input(screen(), windowID(), keyState);
+    utl::Box screenspace{screen()};
+    utl::process_input(screenspace, windowID(), keyState);
 
     // quitting
     if (keyState.at(utl::KeyFlag::QUIT)) {

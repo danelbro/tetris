@@ -1,7 +1,9 @@
 #pragma once
 
 #include "GridPoint.h"
+#include "constants.h"
 
+#include <array>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -18,10 +20,14 @@ struct DisplayCell : public utl::Entity {
     void render(utl::Renderer& renderer) override;
     const utl::Vec2d& size() const override { return size_; };
 
+    void setCol(const utl::Colour& newCol);
+
     utl::Colour col_;
+    utl::Colour borderCol_;
     DisplayBox& grid_;
     GridPoint coord_;
     bool renderMe_;
     utl::Rect rect_;
+    std::array<utl::Rect, constants::gridWalls> borders_;
     utl::Vec2d size_;
 };
