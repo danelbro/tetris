@@ -2,6 +2,7 @@
 /// @file A Stage for running the main Tetris game loop.
 
 #include "DisplayBox.h"
+#include "GhostPiece.h"
 #include "Grid.h"
 #include "Tetromino.h"
 #include "TetrominoShape.h"
@@ -28,6 +29,7 @@ public:
     void render(double t, double dt);
 
     void holdTetro();
+    void hardDrop();
     void resetActiveTetro();
     void notifyScored(int linesCleared);
     void notifyLoss();
@@ -44,6 +46,8 @@ private:
 
     Grid grid_;
     Tetromino activeTetro;
+    GhostPiece ghostPiece;
+
     std::vector<std::unique_ptr<utl::Entity>> entities_;
     std::vector<TetrominoShape> possibleShapes_;
     std::queue<TetrominoShape> upcomingShapes_;
@@ -66,6 +70,7 @@ private:
     double moveTimer;
     bool canSoftdrop;
     double softdropTimer;
+    bool canHarddrop;
 
     bool running;
 

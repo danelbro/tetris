@@ -26,6 +26,7 @@ public:
     void rotate(int dir);
     void soft_drop();
     void changeTickTime(double newTickTime);
+    void setTopLeft(const GridPoint& point) { topLeft_ = point; }
 
     const utl::Colour& colour() const { return col_; }
 

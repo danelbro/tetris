@@ -17,6 +17,7 @@ TetrisApp::TetrisApp()
                        constants::windowFlags}
 {
     m_renderer.setVSync(1);
+    m_renderer.setDrawingBlendMode(SDL_BLENDMODE_BLEND);
     LOG("Set VSync\n");
 
     m_stageManager.add_stage<TitleScreen>(

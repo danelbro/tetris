@@ -1,5 +1,6 @@
 #include "TetrisGame.h"
 
+#include "GhostPiece.h"
 #include "Grid.h"
 #include "Tetromino.h"
 #include "TetrominoShape.h"
@@ -26,9 +27,10 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
     : utl::Stage{screen, windowID, renderer,
                  flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
       grid_{screen, *this, colours::gridWalls},
-      activeTetro{screen, grid_, {}, colours::gridBG, I_tetromino}, entities_{},
-      possibleShapes_{}, upcomingShapes_{}, rng{}, tetroDist{}, score{0},
-      linesClearedTotal{0}, linesClearedThisLevel{0}, level{1},
+      activeTetro{screen, grid_, {}, colours::gridBG, I_tetromino},
+      ghostPiece(screen, grid_, activeTetro), entities_{}, possibleShapes_{},
+      upcomingShapes_{}, rng{}, tetroDist{}, score{0}, linesClearedTotal{0},
+      linesClearedThisLevel{0}, level{1},
       displayBoxTitleFont(utl::createFont(constants::displayBoxFontPath,
                                           constants::displayBoxFontSize)),
       heldDisplayBox{
@@ -38,9 +40,9 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
           screen,
           {constants::nextDisplayBoxPosX, constants::nextDisplayBoxPosY}},
       keyMap{}, canRotate{true}, rotateTimer{0.0}, canMove{true},
-      moveTimer{0.0}, canSoftdrop{true}, softdropTimer{0.0}, running{true},
-      scoreText{screen, renderer, displayBoxTitleFont, std::to_string(score),
-                colours::titleText},
+      moveTimer{0.0}, canSoftdrop{true}, softdropTimer{0.0}, canHarddrop{true},
+      running{true}, scoreText{screen, renderer, displayBoxTitleFont,
+                               std::to_string(score), colours::titleText},
       levelText{screen, renderer, displayBoxTitleFont, std::to_string(level),
                 colours::titleText},
       linesText{screen, renderer, displayBoxTitleFont,
@@ -184,6 +186,17 @@ TetrisGame::handle_input(double, double,
         }
     }
 
+    // hard-dropping
+    if (canHarddrop) {
+        if (keyState.at(utl::KeyFlag::K_SPACE)) {
+            hardDrop();
+            canHarddrop = false;
+        }
+    } else {
+        if (!keyState.at(utl::KeyFlag::K_SPACE))
+            canHarddrop = true;
+    }
+
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
@@ -221,6 +234,7 @@ std::string TetrisGame::update(double t, double dt)
 
     grid_.update(t, dt);
     activeTetro.update(t, dt);
+    ghostPiece.update(t, dt);
     for (const auto& entity : entities_) {
         entity->update(t, dt);
     }
@@ -237,6 +251,7 @@ void TetrisGame::render(double, double)
     levelText.render(renderer());
     grid_.render(renderer());
     activeTetro.render(renderer());
+    ghostPiece.render(renderer());
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }
@@ -277,6 +292,13 @@ void TetrisGame::fillShapeQueue()
     while (upcomingShapes_.size() < constants::shapeQueueMax) {
         upcomingShapes_.emplace(getRandomShape());
     }
+}
+
+
+void TetrisGame::hardDrop()
+{
+    activeTetro.setTopLeft(ghostPiece.topLeft());
+    grid_.notifyBlockedTetro(activeTetro);
 }
 
 void TetrisGame::notifyScored(int linesCleared)
