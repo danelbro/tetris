@@ -20,7 +20,7 @@ public:
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
-    const utl::Vec2d& size() const override { return size_; }
+    utl::Vec2d size() const override { return size_; }
 
     const GridPoint& topLeft() const { return topLeft_; }
 

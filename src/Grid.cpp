@@ -21,23 +21,36 @@ static void clearLines(std::vector<Cell>& grid,
 static void applyGravity(std::vector<Cell>& grid,
                          const std::vector<int>& clearedLines);
 
-Grid::Grid(utl::Box& screen, utl::Stage& owner, const utl::Colour& colour)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID),
-                  screen,
-                  {constants::gridPosX, constants::gridPosY}},
+Grid::Grid(TetrisGame& owner)
+    : utl::Entity{},
       innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
                      constants::gridPosY + constants::gridWallThickness},
-      owner_{owner}, walls{}, grid{}, col{colour},
-      linesClearedTotal{0}, numLinesClearedThisFrame{0},
-      linesClearedThisFrame{},
+      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID)},
+      pos_{constants::gridPosX, constants::gridPosY},
       size_{(constants::gridWallThickness * 2)
                 + (constants::gridWidth * constants::cellWidth),
             (constants::gridWallThickness * 2)
-                + constants::gridHeight * constants::cellHeight}
+                + constants::gridHeight * constants::cellHeight},
+      owner_{owner}, walls{}, grid{}, col{colours::gridBG},
+      linesClearedTotal{0}, numLinesClearedThisFrame{0}, linesClearedThisFrame{}
+{}
+
+Grid::Grid(TetrisGame& owner, const utl::Colour& colour)
+    : utl::Entity{},
+      innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
+                     constants::gridPosY + constants::gridWallThickness},
+      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID)},
+      pos_{constants::gridPosX, constants::gridPosY},
+      size_{(constants::gridWallThickness * 2)
+                + (constants::gridWidth * constants::cellWidth),
+            (constants::gridWallThickness * 2)
+                + constants::gridHeight * constants::cellHeight},
+      owner_{owner}, walls{}, grid{}, col{colour}, linesClearedTotal{0},
+      numLinesClearedThisFrame{0}, linesClearedThisFrame{}
 {
     linesClearedThisFrame.reserve(static_cast<size_t>(constants::gridHeight));
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
-        grid.emplace_back(screen, *this);
+        grid.emplace_back(*this);
     }
     placeWalls();
     placeBGCells();

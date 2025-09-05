@@ -1,5 +1,6 @@
 // -*- C++ -*-
 /// @file A Stage for running the main Tetris game loop.
+#pragma once
 
 #include "DisplayBox.h"
 #include "GhostPiece.h"
@@ -18,6 +19,7 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 #include <utl_TextObject.hpp>
+#include <utl_random.hpp>
 #include <vector>
 
 class TetrisGame : public utl::Stage {
@@ -51,7 +53,7 @@ private:
     std::vector<std::unique_ptr<utl::Entity>> entities_;
     std::vector<TetrominoShape> possibleShapes_;
     std::queue<TetrominoShape> upcomingShapes_;
-    std::mt19937 rng;
+    utl::RNG rng;
     std::uniform_int_distribution<std::mt19937::result_type> tetroDist;
     int score;
     int linesClearedTotal;

@@ -11,31 +11,52 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 
-DisplayBox::DisplayBox(utl::Box& screen, utl::Vec2d pos)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX), screen,
-                  pos},
-      walls{}, internalGrid{}, isActive{false}, displayedShape{Z_tetromino},
-      size_{
-          (constants::displayBoxWallsThickness * 2)
-              + (constants::displayBoxGridWidth * constants::displayCellWidth),
-          (constants::displayBoxWallsThickness * 2)
-              + (constants::displayBoxGridHeight
-                 * constants::displayCellHeight)}
+DisplayBox::DisplayBox(TetrisGame& owner)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX)},
+      pos_{}, size_{(constants::displayBoxWallsThickness * 2)
+                           + (constants::displayBoxGridWidth
+                              * constants::displayCellWidth),
+                       (constants::displayBoxWallsThickness * 2)
+                           + (constants::displayBoxGridHeight
+                              * constants::displayCellHeight)},
+      owner_{owner}, walls{}, internalGrid{}, isActive{false},
+      displayedShape{Z_tetromino}
+{
+    populateGrid();
+    placeWalls();
+    updateShape(displayedShape);
+    deactivate();
+}
+
+DisplayBox::DisplayBox(TetrisGame& owner, utl::Vec2d pos)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX)},
+      pos_{pos}, size_{(constants::displayBoxWallsThickness * 2)
+                           + (constants::displayBoxGridWidth
+                              * constants::displayCellWidth),
+                       (constants::displayBoxWallsThickness * 2)
+                           + (constants::displayBoxGridHeight
+                              * constants::displayCellHeight)},
+      owner_{owner}, walls{}, internalGrid{}, isActive{false},
+      displayedShape{Z_tetromino}
+{
+    populateGrid();
+    placeWalls();
+    updateShape(displayedShape);
+    deactivate();
+}
+
+void DisplayBox::populateGrid()
 {
     for (size_t y{0}; y < constants::displayBoxGridHeight; ++y) {
         for (size_t x{0}; x < constants::displayBoxGridWidth; ++x) {
             internalGrid.emplace_back(
-                DisplayCell{screen,
-                            pos,
+                DisplayCell{owner_.modifiable_screen(),
+                            pos_,
                             colours::gridBG,
                             *this,
                             {static_cast<int>(x), static_cast<int>(y)}});
         }
     }
-
-    placeWalls();
-    updateShape(displayedShape);
-    deactivate();
 }
 
 void DisplayBox::placeWalls()

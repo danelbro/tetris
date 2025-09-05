@@ -6,109 +6,69 @@
 #include "flags.h"
 
 #include <array>
-#include <cstddef>
 #include <cstdint>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 
-static utl::Box defaultBox{0, 0};
 static std::array<utl::Rect, constants::gridWalls>
 createBorders(float x, float y, float w, float h);
 static utl::Colour shadeBorder(const utl::Colour& mainCol);
 
-Cell::Cell(utl::Box& screen, Grid& grid)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
-      rect{}, borders{}, col{}, borderCol{}, renderMe_{false}, grid_{grid},
-      coord_{}, isOpen_{true}, size_{}
+Cell::Cell(Grid& grid)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
+      pos_{}, size_{}, rect_{}, borders_{}, col{}, borderCol{},
+      renderMe_{false}, grid_{grid}, coord_{}, isOpen_{true}
 {}
 
-Cell::Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
-      rect{}, borders{}, col{colour}, borderCol{shadeBorder(colour)},
-      renderMe_{false}, grid_{grid}, coord_{}, isOpen_{true}, size_{}
+Cell::Cell(Grid& grid, const utl::Colour& colour)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
+      pos_{}, size_{}, rect_{}, borders_{}, col{colour},
+      borderCol{shadeBorder(colour)}, renderMe_{false}, grid_{grid}, coord_{},
+      isOpen_{true}
 {}
 
-Cell::Cell(utl::Box& screen, int x, int y, int w, int h,
-           const utl::Colour& colour, Grid& grid, const GridPoint& coord)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL),
-                  screen,
-                  {x, y}},
-      rect{x, y, w, h},
-      borders{createBorders(static_cast<float>(x), static_cast<float>(y),
-                            static_cast<float>(w), static_cast<float>(h))},
-      col{colour}, borderCol{shadeBorder(colour)}, renderMe_{false},
-      grid_{grid}, coord_{coord}, isOpen_{true},
-      size_{static_cast<double>(w), static_cast<double>(h)}
-{}
-
-Cell::Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid,
-           const GridPoint& coord)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL), screen, {}},
-      rect{}, borders{}, col{colour}, borderCol{shadeBorder(colour)},
-      renderMe_{false}, grid_{grid}, coord_{coord}, isOpen_{true}, size_{}
+Cell::Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
+      pos_{}, size_{}, rect_{}, borders_{}, col{colour},
+      borderCol{shadeBorder(colour)}, renderMe_{false}, grid_{grid},
+      coord_{coord}, isOpen_{true}
 {
     set_pos({static_cast<double>(grid_.innerTopLeftPt.x + coord_.x),
              static_cast<double>(grid_.innerTopLeftPt.y + coord_.y)});
 }
 
-Cell::Cell(const Cell& old)
-    : utl::Entity{old.m_type, old.m_screenSpace, old.m_pos}, rect{}, borders{},
-      col{old.col}, borderCol{old.borderCol}, renderMe_{false},
-      grid_{old.grid_}, coord_{old.coord_}, isOpen_{old.isOpen_},
-      size_{old.size_}
-{
-    if (old.rect.get()) {
-        rect.reset(old.rect.x(), old.rect.y(), old.rect.w(), old.rect.h());
-        for (size_t i{0}; i < old.borders.size(); ++i) {
-            borders[i].reset(old.borders[i].x(), old.borders[i].y(),
-                             old.borders[i].w(), old.borders[i].h());
-        }
-    }
-}
+Cell::Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord,
+           const RectDimensions& rect)
+    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
+      pos_{rect.x, rect.y},
+      size_{static_cast<double>(rect.w), static_cast<double>(rect.h)},
+      rect_{rect.x, rect.y, rect.w, rect.h},
+      borders_{createBorders(
+          static_cast<float>(rect.x), static_cast<float>(rect.y),
+          static_cast<float>(rect.w), static_cast<float>(rect.h))},
+      col{colour}, borderCol{shadeBorder(colour)}, renderMe_{false},
+      grid_{grid}, coord_{coord}, isOpen_{true}
+{}
 
-Cell::Cell(Cell&& old) noexcept
-    : utl::Entity{old.m_type, old.m_screenSpace, old.m_pos},
-      rect{std::move(old.rect)}, borders{}, col{std::move(old.col)},
-      borderCol{std::move(old.borderCol)}, renderMe_{old.renderMe_},
-      grid_{old.grid_}, coord_{old.coord_}, isOpen_{old.isOpen_},
-      size_{old.size_}
+const utl::Stage& Cell::stage() const
 {
-    for (size_t i{0}; i < old.borders.size(); ++i) {
-        borders[i] = std::move(old.borders[i]);
-    }
-}
-
-Cell& Cell::operator=(Cell&& old) noexcept
-{
-    set_pos(old.pos());
-    if (old.rect.get()) {
-        rect = std::move(old.rect);
-        for (size_t i{0}; i < old.borders.size(); ++i) {
-            borders[i] = std::move(old.borders[i]);
-        }
-    }
-    col = std::move(old.col);
-    renderMe_ = old.renderMe_;
-    isOpen_ = old.isOpen_;
-    size_ = old.size_;
-
-    return *this;
+    return grid_.stage();
 }
 
 void Cell::update_rect(int x, int y, int w, int h)
 {
-    rect.reset(static_cast<float>(x), static_cast<float>(y),
-               static_cast<float>(w), static_cast<float>(h));
-    borders = createBorders(static_cast<float>(x), static_cast<float>(y),
-                            static_cast<float>(w), static_cast<float>(h));
+    rect_.reset(static_cast<float>(x), static_cast<float>(y),
+                static_cast<float>(w), static_cast<float>(h));
+    borders_ = createBorders(static_cast<float>(x), static_cast<float>(y),
+                             static_cast<float>(w), static_cast<float>(h));
     size_ = {static_cast<double>(w), static_cast<double>(h)};
 }
 
 void Cell::set_pos(const utl::Vec2d& newPos)
 {
-    m_pos = newPos;
-    update_rect(static_cast<int>(m_pos.x), static_cast<int>(m_pos.y),
+    pos_ = newPos;
+    update_rect(static_cast<int>(pos_.x), static_cast<int>(pos_.y),
                 constants::cellWidth, constants::cellHeight);
 }
 
@@ -119,9 +79,9 @@ void Cell::render(utl::Renderer& renderer)
     if (renderMe_) {
         utl::Colour oldCol{utl::getRendererDrawColour(renderer)};
         utl::setRendererDrawColour(renderer, col);
-        rect.draw(renderer);
+        rect_.draw(renderer);
         utl::setRendererDrawColour(renderer, borderCol);
-        for (auto& line : borders) line.draw(renderer);
+        for (auto& line : borders_) line.draw(renderer);
         utl::setRendererDrawColour(renderer, oldCol);
     }
 }

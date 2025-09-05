@@ -1,5 +1,6 @@
 #include "DisplayCell.h"
 
+#include "DisplayBox.h"
 #include "GridPoint.h"
 #include "constants.h"
 #include "flags.h"
@@ -13,25 +14,25 @@ static std::array<utl::Rect, constants::gridWalls>
 createBorders(float x, float y, float w, float h);
 static utl::Colour shadeBorder(const utl::Colour& mainCol);
 
-DisplayCell::DisplayCell(utl::Box& screen, const utl::Vec2d& startPos,
-                         const utl::Colour& colour, DisplayBox& grid,
-                         const GridPoint& coord)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL),
-                  screen,
-                  {startPos.x + constants::displayBoxWallsThickness
-                       + (constants::displayCellWidth * coord.x),
-                   startPos.y + constants::displayBoxWallsThickness
-                       + (constants::displayCellWidth * coord.y)}},
-      col_{colour}, borderCol_{shadeBorder(colour)}, grid_{grid}, coord_{coord},
-      renderMe_{true},
-      rect_{static_cast<float>(m_pos.x), static_cast<float>(m_pos.y),
+DisplayCell::DisplayCell(DisplayBox& grid, const GridPoint& coord,
+                         const utl::Colour& colour)
+    : utl::Entity{}, col_{colour}, borderCol_{shadeBorder(colour)}, grid_{grid},
+      coord_{coord}, renderMe_{true},
+      rect_{static_cast<float>(grid_.pos().x),
+            static_cast<float>(grid_.pos().y),
             static_cast<float>(constants::displayCellWidth),
             static_cast<float>(constants::displayCellHeight)},
-      borders_{createBorders(static_cast<float>(m_pos.x),
-                             static_cast<float>(m_pos.y),
+      borders_{createBorders(static_cast<float>(grid.pos().x),
+                             static_cast<float>(grid.pos().y),
                              static_cast<float>(constants::displayCellWidth),
                              static_cast<float>(constants::displayCellHeight))},
-      size_{constants::displayCellWidth, constants::displayCellHeight}
+      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
+      pos_{grid.pos().x + constants::displayBoxWallsThickness
+               + (constants::displayCellWidth * coord.x),
+           grid.pos().y + constants::displayBoxWallsThickness
+               + (constants::displayCellWidth * coord.y)},
+      size_{constants::displayCellWidth, constants::displayCellHeight},
+      owner_{grid.stage()}
 {}
 
 void DisplayCell::update(double, double) {}
@@ -48,7 +49,8 @@ void DisplayCell::render(utl::Renderer& renderer)
     }
 }
 
-void DisplayCell::setCol(const utl::Colour& newCol)
+
+    void DisplayCell::setCol(const utl::Colour& newCol)
 {
     col_ = newCol;
     borderCol_ = shadeBorder(newCol);

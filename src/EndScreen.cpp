@@ -39,7 +39,7 @@ EndScreen::EndScreen(utl::Box& screen_space, uint32_t windowID,
 {
     for (int y{0}; y < constants::gridHeight; ++y) {
         for (int x{0}; x < constants::gridWidth; ++x) {
-            auto activeCell{grid.get(x, y)};
+            const Cell& activeCell{grid.get(x, y)};
             grid_.setCellColour(x, y, activeCell.colour());
             grid_.setCellOpen(x, y,
                               activeCell.isOpen());  // not strictly necessary

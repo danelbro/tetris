@@ -9,30 +9,36 @@
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Stage.hpp>
 #include <utl_Vec2d.hpp>
 
 class Grid;
 
+struct RectDimensions {
+    int x;
+    int y;
+    int w;
+    int h;
+};
+
 class Cell : public utl::Entity {
 public:
-    Cell(utl::Box& screen, Grid& grid);
-    Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid);
-    Cell(utl::Box& screen, int x, int y, int w, int h,
-         const utl::Colour& colour, Grid& grid, const GridPoint& coord);
-    Cell(utl::Box& screen, const utl::Colour& colour, Grid& grid,
-         const GridPoint& coord);
-
-    Cell(const Cell&);
-    Cell(Cell&&) noexcept;
-    Cell& operator=(const Cell&) = delete;
-    Cell& operator=(Cell&&) noexcept;
-
-    void update_rect(int x, int y, int w, int h);
-    void set_pos(const utl::Vec2d& newPos);
+    Cell(Grid& grid);
+    Cell(Grid& grid, const utl::Colour& colour);
+    Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord);
+    Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord,
+         const RectDimensions& rect);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
+    const std::string& type() const override { return type_; }
+    const utl::Vec2d& pos() const override { return pos_; }
+    const utl::Vec2d& size() const override { return size_; }
+    const utl::Stage& stage() const override;
+    void set_pos(double x, double y) override;
+    void set_pos(const utl::Vec2d& newPos) override;
 
+    void update_rect(int x, int y, int w, int h);
     void makeRender() { renderMe_ = true; }
     void stopRendering() { renderMe_ = false; }
 
@@ -40,7 +46,6 @@ public:
     void setOpen(bool open) { isOpen_ = open; }
 
     const utl::Colour& colour() const { return col; }
-    const utl::Vec2d& size() const override { return size_; }
 
     bool renderMe() const { return renderMe_; }
     bool isOpen() const { return isOpen_; }
@@ -56,13 +61,15 @@ public:
     void setCoord(const int x, const int y);
 
 private:
-    utl::Rect rect;
-    std::array<utl::Rect, constants::gridWalls> borders;
+    std::string type_;
+    utl::Vec2d pos_;
+    utl::Vec2d size_;
+    utl::Rect rect_;
+    std::array<utl::Rect, constants::gridWalls> borders_;
     utl::Colour col;
     utl::Colour borderCol;
     bool renderMe_;
     Grid& grid_;
     GridPoint coord_;
     bool isOpen_;
-    utl::Vec2d size_;
 };

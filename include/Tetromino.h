@@ -33,7 +33,7 @@ public:
     const TetrominoShape& shape() const { return tetrominoShape_; }
     const size_t& currentRotation() const { return currentRotation_; }
     const GridPoint& topLeft() const { return topLeft_; }
-    const utl::Vec2d& size() const override { return size_; }
+    utl::Vec2d size() const override { return size_; }
     const double& tickTime() const { return tickTime_; }
 
 private:

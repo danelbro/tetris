@@ -18,3 +18,4 @@
 - [ ] Highscores
 - [ ] Sound/music
 - [x] Cell borders
+- [ ] Pause

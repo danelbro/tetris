@@ -4,8 +4,10 @@
 
 int main(int, char**)
 {
-    TetrisApp tetris{};
-    tetris.run();
+    {
+        TetrisApp tetris{};
+        tetris.run();
+    }
 
     return 0;
 }

@@ -11,7 +11,7 @@
 #include <array>
 #include <cstdint>
 #include <memory>
-#include <random>
+#include <utl_random.hpp>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
@@ -59,8 +59,7 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
     possibleShapes_.emplace_back(S_tetromino);
     possibleShapes_.emplace_back(Z_tetromino);
 
-    std::random_device dev;
-    rng = std::mt19937{dev()};
+    rng.rng().seed();
     tetroDist = std::uniform_int_distribution<std::mt19937::result_type>{
         0, constants::tetrominoes - 1};
 
@@ -284,7 +283,7 @@ void TetrisGame::holdTetro()
 
 const TetrominoShape& TetrisGame::getRandomShape()
 {
-    return possibleShapes_[tetroDist(rng)];
+    return possibleShapes_[tetroDist(rng.rng())];
 }
 
 void TetrisGame::fillShapeQueue()
