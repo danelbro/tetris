@@ -3,7 +3,7 @@
 #include "Cell.h"
 #include "Grid.h"
 #include "GridPoint.h"
-#include "Tetromino.h"
+#include "TetrisGame.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -14,16 +14,14 @@
 
 static utl::Colour addTransparency(const utl::Colour& colour);
 
-GhostPiece::GhostPiece(utl::Box& screen, Grid& grid,
-                       const Tetromino& activeTetro)
-    : utl::Entity{flags::ENTITIES_MAP.at(flags::ENTITIES::GHOST_PIECE),
-                  screen,
-                  {}},
-      grid_{grid}, activeTetro_{activeTetro},
-      currentShape_{activeTetro_.shape()},
-      currentRotation_{activeTetro_.currentRotation()},
-      colour_{addTransparency(activeTetro_.colour())}, shape_{},
-      topLeft_{activeTetro_.topLeft()}, size_{}
+GhostPiece::GhostPiece(TetrisGame& owner)
+    : utl::Entity{},
+      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GHOST_PIECE)}, pos_{},
+      size_{}, owner_{owner},
+      colour_{addTransparency(owner.activeTetro().colour())},
+      origin_{owner.activeTetro().topLeft()}, shape_{},
+      currentShape_{owner.activeTetro().shape()},
+      currentRotation_{owner.activeTetro().currentRotation()}
 {
     init();
 }
@@ -32,7 +30,7 @@ void GhostPiece::init()
 {
     shape_.reserve(constants::shapeWidth * constants::shapeHeight);
     for (size_t i{0}; i < constants::shapeWidth * constants::shapeHeight; ++i) {
-        shape_.emplace_back(m_screenSpace, colour_, grid_);
+        shape_.emplace_back(owner_.grid(), colour_);
     }
 
     readShape();
@@ -40,16 +38,16 @@ void GhostPiece::init()
 
 void GhostPiece::repositionInScreenSpace()
 {
-    m_pos.x = grid_.innerTopLeftPt.x
-              + static_cast<double>(topLeft_.x * constants::cellWidth);
-    m_pos.y = grid_.innerTopLeftPt.y
-              + static_cast<double>(topLeft_.y * constants::cellHeight);
+    pos_.x = owner_.grid().innerTopLeftPt.x
+             + static_cast<double>(origin_.x * constants::cellWidth);
+    pos_.y = owner_.grid().innerTopLeftPt.y
+             + static_cast<double>(origin_.y * constants::cellHeight);
 
     for (size_t i{0}; i < shape_.size(); ++i) {
         int x{static_cast<int>(i % constants::shapeWidth)};
         int y{static_cast<int>(i / constants::shapeHeight)};
-        int newX{static_cast<int>(m_pos.x) + constants::cellWidth * x};
-        int newY{static_cast<int>(m_pos.y) + constants::cellHeight * y};
+        int newX{static_cast<int>(pos_.x) + constants::cellWidth * x};
+        int newY{static_cast<int>(pos_.y) + constants::cellHeight * y};
         shape_[i].update_rect(newX, newY, constants::cellWidth,
                               constants::cellHeight);
     }
@@ -57,12 +55,12 @@ void GhostPiece::repositionInScreenSpace()
 
 void GhostPiece::repositionInGridSpace()
 {
-    topLeft_.x = activeTetro_.topLeft().x;
+    origin_.x = owner_.activeTetro().topLeft().x;
 
-    int y{activeTetro_.topLeft().y};
+    int y{owner_.activeTetro().topLeft().y};
     for (; y <= constants::gridHeight; ++y) {
         for (const GridPoint& cell : currentShape_.at(currentRotation_)) {
-            int testX{topLeft_.x + cell.x};
+            int testX{origin_.x + cell.x};
             int testY{y + cell.y};
             if (testX >= constants::gridWidth || testX < 0
                 || testY >= constants::gridHeight || testY < 0
@@ -76,14 +74,15 @@ void GhostPiece::repositionInGridSpace()
     }
     // we are at maximum depth
 shapeBlocked:
-    topLeft_.y = y - 1; //  we want the shape to be in the last open space we found
+    origin_.y =
+        y - 1;  //  we want the shape to be in the last open space we found
 }
 
 void GhostPiece::update(double, double)
 {
-    currentShape_ = activeTetro_.shape();
-    currentRotation_ = activeTetro_.currentRotation();
-    colour_ = addTransparency(activeTetro_.colour());
+    currentShape_ = owner_.activeTetro().shape();
+    currentRotation_ = owner_.activeTetro().currentRotation();
+    colour_ = addTransparency(owner_.activeTetro().colour());
     for (auto& cell : shape_) {
         cell.setColour(colour_);
     }

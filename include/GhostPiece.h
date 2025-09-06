@@ -3,9 +3,11 @@
 #pragma once
 
 #include "Cell.h"
+#include "TetrisGame.h"
 #include "TetrominoShape.h"
 #include "utl_Vec2d.hpp"
 
+#include <string>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -16,13 +18,16 @@ class Tetromino;
 
 class GhostPiece : public utl::Entity {
 public:
-    GhostPiece(utl::Box& screen, Grid& grid, const Tetromino& activeTetro);
+    GhostPiece(TetrisGame& owner);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
-    utl::Vec2d size() const override { return size_; }
+    const std::string& type() const override { return type_; }
+    const utl::Vec2d& pos() const override { return pos_; }
+    const utl::Vec2d& size() const override { return size_; }
+    const utl::Stage& stage() const override { return owner_; }
 
-    const GridPoint& topLeft() const { return topLeft_; }
+    const GridPoint& origin() const { return origin_; }
 
 private:
     void init();
@@ -31,15 +36,15 @@ private:
     void repositionInScreenSpace();
 
 private:
-    Grid& grid_;
-    const Tetromino& activeTetro_;
-
-    TetrominoShape currentShape_;
-    size_t currentRotation_;
+    std::string type_;
+    utl::Vec2d pos_;
+    utl::Vec2d size_;
+    TetrisGame& owner_;
 
     utl::Colour colour_;
 
+    GridPoint origin_;
     std::vector<Cell> shape_;
-    GridPoint topLeft_;
-    utl::Vec2d size_;
+    TetrominoShape currentShape_;
+    size_t currentRotation_;
 };

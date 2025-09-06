@@ -23,10 +23,10 @@ struct RectDimensions {
 
 class Cell : public utl::Entity {
 public:
-    Cell(Grid& grid);
-    Cell(Grid& grid, const utl::Colour& colour);
-    Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord);
-    Cell(Grid& grid, const utl::Colour& colour, const GridPoint& coord,
+    Cell(const Grid& grid);
+    Cell(const Grid& grid, const utl::Colour& colour);
+    Cell(const Grid& grid, const utl::Colour& colour, const GridPoint& coord);
+    Cell(const Grid& grid, const utl::Colour& colour, const GridPoint& coord,
          const RectDimensions& rect);
 
     void update(double t, double dt) override;
@@ -69,7 +69,7 @@ private:
     utl::Colour col;
     utl::Colour borderCol;
     bool renderMe_;
-    Grid& grid_;
+    const Grid& grid_;
     GridPoint coord_;
     bool isOpen_;
 };

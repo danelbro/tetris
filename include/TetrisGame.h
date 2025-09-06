@@ -37,6 +37,7 @@ public:
     void notifyLoss();
 
     const Grid& grid() const { return grid_; }
+    const Tetromino& activeTetro() const { return activeTetro(); }
     int getScore() const { return score; }
     int getLines() const { return linesClearedTotal; }
     int getLevel() const { return level; }
