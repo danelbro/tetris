@@ -11,23 +11,6 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 
-DisplayBox::DisplayBox(TetrisGame& owner)
-    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX)},
-      pos_{}, size_{(constants::displayBoxWallsThickness * 2)
-                           + (constants::displayBoxGridWidth
-                              * constants::displayCellWidth),
-                       (constants::displayBoxWallsThickness * 2)
-                           + (constants::displayBoxGridHeight
-                              * constants::displayCellHeight)},
-      owner_{owner}, walls{}, internalGrid{}, isActive{false},
-      displayedShape{Z_tetromino}
-{
-    populateGrid();
-    placeWalls();
-    updateShape(displayedShape);
-    deactivate();
-}
-
 DisplayBox::DisplayBox(TetrisGame& owner, utl::Vec2d pos)
     : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX)},
       pos_{pos}, size_{(constants::displayBoxWallsThickness * 2)
@@ -92,7 +75,7 @@ void DisplayBox::placeWalls()
                 + (static_cast<int>(i) - 1)
                       * (constants::displayBoxWallsThickness / 2);
         }
-        walls[i] = utl::Rect{x, y, w, h};
+        walls[i] = utl::Rect{{x, y, w, h}};
     }
 }
 

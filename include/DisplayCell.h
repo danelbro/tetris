@@ -1,6 +1,7 @@
 #pragma once
 
-#include "GridPoint.h"
+#include "Grid.h"
+#include "colours.h"
 #include "constants.h"
 #include "utl_Stage.hpp"
 
@@ -14,14 +15,14 @@
 class DisplayBox;
 
 struct DisplayCell : public utl::Entity {
-    DisplayCell(DisplayBox& grid, const GridPoint& coord,
-                const utl::Colour& colour);
+    DisplayCell(DisplayBox& grid, const GridPoint& coord = {0, 0},
+                const utl::Colour& colour = colours::gridBG);
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
     const std::string& type() const override { return type_; }
     const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Vec2d& size() const override { return size_; };
+    const utl::Size& size() const override { return size_; };
     const utl::Stage& stage() const override { return owner_; }
 
     void setCol(const utl::Colour& newCol);
@@ -37,6 +38,6 @@ struct DisplayCell : public utl::Entity {
 private:
     std::string type_;
     utl::Vec2d pos_;
-    utl::Vec2d size_;
+    utl::Size size_;
     const utl::Stage& owner_;
 };

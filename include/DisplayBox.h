@@ -18,16 +18,15 @@ struct DisplayCell;
 class DisplayBox : public utl::Entity {
 public:
     DisplayBox(TetrisGame& owner);
-    DisplayBox(TetrisGame& owner, utl::Vec2d pos);
+    DisplayBox(TetrisGame& owner, utl::Vec2d pos={0.0,0.0});
 
     void update(double t, double dt) override;
     void render(utl::Renderer& renderer) override;
     const std::string& type() const override { return type_; }
     const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Vec2d& size() const override { return size_; }
+    const utl::Size& size() const override { return size_; }
     const utl::Stage& stage() const override { return owner_; }
 
-    void set_pos(double x, double y) override;
     void set_pos(const utl::Vec2d& new_pos) override;
 
     bool isActivated() { return isActive; }
@@ -44,7 +43,7 @@ private:
 private:
     std::string type_;
     utl::Vec2d pos_;
-    utl::Vec2d size_;
+    utl::Size size_;
     TetrisGame& owner_;
     std::array<utl::Rect, constants::displayBoxWalls> walls;
     std::vector<DisplayCell> internalGrid;

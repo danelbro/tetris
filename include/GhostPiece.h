@@ -24,7 +24,7 @@ public:
     void render(utl::Renderer& renderer) override;
     const std::string& type() const override { return type_; }
     const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Vec2d& size() const override { return size_; }
+    const utl::Size& size() const override { return size_; }
     const utl::Stage& stage() const override { return owner_; }
 
     const GridPoint& origin() const { return origin_; }
@@ -38,7 +38,7 @@ private:
 private:
     std::string type_;
     utl::Vec2d pos_;
-    utl::Vec2d size_;
+    utl::Size size_;
     TetrisGame& owner_;
 
     utl::Colour colour_;

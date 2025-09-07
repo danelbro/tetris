@@ -13,6 +13,11 @@
 
 class Tetromino;
 
+struct GridPoint {
+    int x;
+    int y;
+};
+
 class Grid : public utl::Entity {
 public:
     Grid(TetrisGame& owner);
@@ -22,15 +27,14 @@ public:
     void render(utl::Renderer& renderer) override;
     const std::string& type() const override { return type_; }
     const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Vec2d& size() const override { return size_; }
+    const utl::Size& size() const override { return size_; }
     const utl::Stage& stage() const override { return owner_; };
-    void set_pos(double x, double y) override;
     void set_pos(const utl::Vec2d& new_pos) override;
 
-    const Cell& get(int x, int y) const;
+    const Cell& get(const GridPoint& coord) const;
 
-    void setCellColour(int x, int y, utl::Colour col);
-    void setCellOpen(int x, int y, bool open);
+    void setCellColour(const GridPoint& coord, const utl::Colour& col);
+    void setCellOpen(const GridPoint& coord, bool open);
 
     void notifyBlockedTetro(const Tetromino& tetromino);
     void notifyLoss(const Tetromino& tetromino);
@@ -47,7 +51,7 @@ private:
 private:
     std::string type_;
     utl::Vec2d pos_;
-    utl::Vec2d size_;
+    utl::Size size_;
     TetrisGame& owner_;
 
     std::array<utl::Rect, constants::gridWalls> walls;

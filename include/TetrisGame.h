@@ -36,8 +36,8 @@ public:
     void notifyScored(int linesCleared);
     void notifyLoss();
 
-    const Grid& grid() const { return grid_; }
-    const Tetromino& activeTetro() const { return activeTetro(); }
+    Grid& grid() const { return grid_; }
+    const Tetromino& activeTetro() const { return activeTetro_; }
     int getScore() const { return score; }
     int getLines() const { return linesClearedTotal; }
     int getLevel() const { return level; }
@@ -48,7 +48,7 @@ private:
     void changeLevel();
 
     Grid grid_;
-    Tetromino activeTetro;
+    Tetromino activeTetro_;
     GhostPiece ghostPiece;
 
     std::vector<std::unique_ptr<utl::Entity>> entities_;

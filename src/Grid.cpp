@@ -76,12 +76,12 @@ void Grid::render(utl::Renderer& renderer)
     utl::setRendererDrawColour(renderer, old);
 }
 
-const Cell& Grid::get(int x, int y) const
+const Cell& Grid::get(const GridPoint& coord) const
 {
-    if (x < 0 || y < 0)
+    if (coord.x < 0 || coord.y < 0)
         throw std::runtime_error("overflow");
 
-    return grid[static_cast<size_t>(x + y * constants::gridWidth)];
+    return grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)];
 }
 
 void Grid::placeWalls()
@@ -111,7 +111,7 @@ void Grid::placeWalls()
                 + (static_cast<int>(i) - 1)
                       * (constants::gridWallThickness / 2);
         }
-        walls[i] = utl::Rect{x, y, w, h};
+        walls[i] = utl::Rect{{x, y, w, h}};
     }
 }
 
@@ -234,12 +234,14 @@ static void applyGravity(std::vector<Cell>& grid,
     }
 }
 
-void Grid::setCellColour(int x, int y, utl::Colour colour)
+void Grid::setCellColour(const GridPoint& coord, const utl::Colour& colour)
 {
-    grid[static_cast<size_t>(x + y * constants::gridWidth)].setColour(colour);
+    grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)]
+        .setColour(colour);
 }
 
-void Grid::setCellOpen(int x, int y, bool open)
+void Grid::setCellOpen(const GridPoint& coord, bool open)
 {
-    grid[static_cast<size_t>(x + y * constants::gridWidth)].setOpen(open);
+    grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)].setOpen(
+        open);
 }

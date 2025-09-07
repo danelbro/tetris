@@ -1,8 +1,6 @@
 #include "GhostPiece.h"
 
-#include "Cell.h"
 #include "Grid.h"
-#include "GridPoint.h"
 #include "TetrisGame.h"
 #include "constants.h"
 #include "flags.h"
@@ -60,11 +58,10 @@ void GhostPiece::repositionInGridSpace()
     int y{owner_.activeTetro().topLeft().y};
     for (; y <= constants::gridHeight; ++y) {
         for (const GridPoint& cell : currentShape_.at(currentRotation_)) {
-            int testX{origin_.x + cell.x};
-            int testY{y + cell.y};
-            if (testX >= constants::gridWidth || testX < 0
-                || testY >= constants::gridHeight || testY < 0
-                || !grid_.get(testX, testY).isOpen()) {
+            GridPoint test{origin_.x + cell.x, y + cell.y};
+            if (test.x >= constants::gridWidth || test.x < 0
+                || test.y >= constants::gridHeight || test.y < 0
+                || !owner_.grid().get(test).isOpen()) {
                 // shape is blocked here
                 goto shapeBlocked;
             }
