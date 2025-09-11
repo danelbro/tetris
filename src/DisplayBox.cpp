@@ -1,26 +1,27 @@
 #include "DisplayBox.h"
 
 #include "DisplayCell.h"
+#include "TetrisGame.h"
 #include "TetrominoShape.h"
 #include "colours.h"
 #include "constants.h"
-#include "flags.h"
 
+#include <stdexcept>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
+#include <vector>
 
-DisplayBox::DisplayBox(TetrisGame& owner, utl::Vec2d pos)
-    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::DISPLAYBOX)},
-      pos_{pos}, size_{(constants::displayBoxWallsThickness * 2)
-                           + (constants::displayBoxGridWidth
-                              * constants::displayCellWidth),
-                       (constants::displayBoxWallsThickness * 2)
-                           + (constants::displayBoxGridHeight
-                              * constants::displayCellHeight)},
-      owner_{owner}, walls{}, internalGrid{}, isActive{false},
-      displayedShape{Z_tetromino}
+static const utl::Colour& determineColour(const TetrominoShape& shape);
+static int determineXOffset(TetrominoShape& shape);
+static int determineYOffset(TetrominoShape& shape);
+static void readShape(std::vector<DisplayCell>& grid, TetrominoShape& shape);
+
+DisplayBox::DisplayBox(TetrisGame* owner) : DisplayBox{owner, {0.0, 0.0}} {}
+
+DisplayBox::DisplayBox(TetrisGame* owner, utl::Vec2d pos)
+    : utl::Entity{}, owner_{owner}, pos_{pos}
 {
     populateGrid();
     placeWalls();
@@ -28,56 +29,7 @@ DisplayBox::DisplayBox(TetrisGame& owner, utl::Vec2d pos)
     deactivate();
 }
 
-void DisplayBox::populateGrid()
-{
-    for (size_t y{0}; y < constants::displayBoxGridHeight; ++y) {
-        for (size_t x{0}; x < constants::displayBoxGridWidth; ++x) {
-            internalGrid.emplace_back(
-                DisplayCell{owner_.modifiable_screen(),
-                            pos_,
-                            colours::gridBG,
-                            *this,
-                            {static_cast<int>(x), static_cast<int>(y)}});
-        }
-    }
-}
-
-void DisplayBox::placeWalls()
-{
-    for (size_t i{0}; i < constants::gridWalls; ++i) {
-        int w{}, h{}, x{}, y{};
-        if (i % 2 == 0) {
-            // side walls
-            w = constants::displayBoxWallsThickness;
-            h = (constants::displayBoxWallsThickness * 2)
-                + (constants::displayCellHeight
-                   * constants::displayBoxGridHeight);
-            x = static_cast<int>(pos().x)
-                + (static_cast<int>(i)
-                   * (constants::displayCellWidth
-                      * constants::displayBoxGridWidth)
-                   / 2)
-                + (static_cast<int>(i)
-                   * (constants::displayBoxWallsThickness / 2));
-            y = static_cast<int>(pos().y);
-        } else {
-            // top and bottom
-            w = (constants::displayBoxWallsThickness * 2)
-                + (constants::displayCellWidth
-                   * constants::displayBoxGridWidth);
-            h = constants::displayBoxWallsThickness;
-
-            x = static_cast<int>(pos().x);
-            y = static_cast<int>(pos().y)
-                + ((static_cast<int>(i) - 1)
-                   * (constants::displayCellHeight
-                      * (constants::displayBoxGridHeight / 2)))
-                + (static_cast<int>(i) - 1)
-                      * (constants::displayBoxWallsThickness / 2);
-        }
-        walls[i] = utl::Rect{{x, y, w, h}};
-    }
-}
+void DisplayBox::update(double, double) {}
 
 void DisplayBox::render(utl::Renderer& renderer)
 {
@@ -89,7 +41,109 @@ void DisplayBox::render(utl::Renderer& renderer)
     for (auto& cell : internalGrid) cell.render(renderer);
 }
 
-void DisplayBox::update(double, double) {}
+const std::string& DisplayBox::type() const
+{
+    return type_;
+}
+
+const utl::Vec2d& DisplayBox::pos() const
+{
+    return pos_;
+}
+
+const utl::Size& DisplayBox::size() const
+{
+    return size_;
+}
+
+utl::Stage& DisplayBox::stage()
+{
+    if (!owner_) throw std::runtime_error("DisplayBox has no owner!");
+    return *owner_;
+}
+
+void DisplayBox::set_pos(const utl::Vec2d& new_pos)
+{
+    pos_ = new_pos;
+    placeWalls();
+}
+
+bool DisplayBox::isActivated()
+{
+    return isActive;
+}
+
+void DisplayBox::activate()
+{
+    isActive = true;
+    readShape(internalGrid, displayedShape);
+}
+
+void DisplayBox::deactivate()
+{
+    isActive = false;
+    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
+}
+
+void DisplayBox::updateShape(const TetrominoShape& newShape)
+{
+    displayedShape = newShape;
+    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
+    if (isActive)
+        readShape(internalGrid, displayedShape);
+}
+
+const TetrominoShape& DisplayBox::activeShape()
+{
+    return displayedShape;
+}
+
+void DisplayBox::populateGrid()
+{
+    for (int y{0}; y < constants::displayBoxGridHeight; ++y) {
+        for (int x{0}; x < constants::displayBoxGridWidth; ++x) {
+            internalGrid.emplace_back(
+                DisplayCell{owner_, *this, {x, y}, colours::gridBG});
+        }
+    }
+}
+
+void DisplayBox::placeWalls()
+{
+    for (size_t i{0}; i < constants::gridWalls; ++i) {
+        utl::RectDimensions rect{};
+        if (i % 2 == 0) {
+            // side walls
+            rect.w = constants::displayBoxWallsThickness;
+            rect.h = (constants::displayBoxWallsThickness * 2)
+                     + (constants::displayCellHeight
+                        * constants::displayBoxGridHeight);
+            rect.x = static_cast<float>(pos().x)
+                     + (static_cast<float>(i)
+                        * (constants::displayCellWidth
+                           * constants::displayBoxGridWidth)
+                        / 2.0f)
+                     + (static_cast<float>(i)
+                        * (constants::displayBoxWallsThickness / 2.0f));
+            rect.y = static_cast<float>(pos().y);
+        } else {
+            // top and bottom
+            rect.w = (constants::displayBoxWallsThickness * 2)
+                     + (constants::displayCellWidth
+                        * constants::displayBoxGridWidth);
+            rect.h = constants::displayBoxWallsThickness;
+
+            rect.x = static_cast<float>(pos().x);
+            rect.y = static_cast<float>(pos().y)
+                     + ((static_cast<float>(i) - 1.0f)
+                        * (constants::displayCellHeight
+                           * (constants::displayBoxGridHeight / 2.0f)))
+                     + (static_cast<float>(i) - 1)
+                           * (constants::displayBoxWallsThickness / 2.0f);
+        }
+        walls[i] = utl::Rect{rect};
+    }
+}
 
 static const utl::Colour& determineColour(const TetrominoShape& shape)
 {
@@ -160,24 +214,4 @@ static void readShape(std::vector<DisplayCell>& grid, TetrominoShape& shape)
                  + ((cell.y + yOffset) * constants::displayBoxGridWidth))]
             .setCol(col);
     }
-}
-
-void DisplayBox::updateShape(const TetrominoShape& newShape)
-{
-    displayedShape = newShape;
-    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
-    if (isActive)
-        readShape(internalGrid, displayedShape);
-}
-
-void DisplayBox::activate()
-{
-    isActive = true;
-    readShape(internalGrid, displayedShape);
-}
-
-void DisplayBox::deactivate()
-{
-    isActive = false;
-    for (auto& cell : internalGrid) cell.setCol(colours::gridBG);
 }

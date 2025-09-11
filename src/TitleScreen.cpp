@@ -1,43 +1,31 @@
 #include "TitleScreen.h"
 
 #include "colours.h"
-#include "constants.h"
 #include "flags.h"
 
 #include <array>
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <utility>
+#include <utl_Application.hpp>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 #include <utl_TextObject.hpp>
 
-TitleScreen::TitleScreen(utl::Box& screenRef, uint32_t windowID,
-                         utl::Renderer& rendererRef)
-    : utl::Stage{screenRef, windowID, rendererRef,
-                 flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN)},
-      titleFont_{
-          utl::createFont(constants::titleFontPath, constants::titleFontSize)},
-      instructionsFont_{utl::createFont(constants::instructionsFontPath,
-                                        constants::instructionsFontSize)},
-      entities_{}
+TitleScreen::TitleScreen(utl::Application& app) : utl::Stage{}, owner_{app}
 {
-    auto title{
-        std::make_unique<utl::TextObject>(screen(), renderer(), titleFont_)};
-    title->loadFromRenderedText("TETRIS", colours::titleText);
-    title->recentre();
-    title->setPos({title->pos().x, title->pos().y - title->size().y / 3});
+    auto title{std::make_unique<utl::TextObject>(this, &titleFont_,
+                                                 colours::titleText, "TETRIS")};
+    title->recentre(owner_.screen());
+    title->move_y_pos(-(title->size().h / 3));
 
-    auto instructions{std::make_unique<utl::TextObject>(screen(), renderer(),
-                                                        instructionsFont_)};
-    instructions->loadFromRenderedText("Press Enter",
-                                       colours::instructionsText);
-    instructions->recentre();
-    instructions->setPos({instructions->pos().x,
-                          instructions->pos().y + instructions->size().y});
+    auto instructions{std::make_unique<utl::TextObject>(
+        this, &instructionsFont_, colours::instructionsText, "Press Enter")};
+    instructions->recentre(owner_.screen());
+    instructions->move_y_pos(instructions->size().h);
+
     entities_.emplace_back(std::move(title));
     entities_.emplace_back(std::move(instructions));
 
@@ -48,7 +36,7 @@ std::string
 TitleScreen::handle_input(double, double,
                           std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
-    utl::process_input(screen(), windowID(), keyState);
+    utl::process_input(screen(), owner_.window().ID(), keyState);
 
     if (keyState.at(utl::KeyFlag::QUIT)) {
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
@@ -73,4 +61,19 @@ void TitleScreen::render(double, double)
         entity->render(renderer());
     }
     utl::presentRenderer(renderer());
+}
+
+utl::Application& TitleScreen::app()
+{
+    return owner_;
+}
+
+utl::Box& TitleScreen::screen()
+{
+    return owner_.screen();
+}
+
+utl::Renderer& TitleScreen::renderer()
+{
+    return owner_.renderer();
 }

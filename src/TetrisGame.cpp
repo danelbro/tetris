@@ -1,52 +1,34 @@
 #include "TetrisGame.h"
 
-#include "GhostPiece.h"
-#include "Grid.h"
-#include "Tetromino.h"
 #include "TetrominoShape.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
 #include <array>
-#include <cstdint>
 #include <memory>
-#include <utl_random.hpp>
 #include <string>
+#include <utl_Application.hpp>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 #include <utl_TextObject.hpp>
+#include <utl_random.hpp>
 
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
 
-TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
-                       utl::Renderer& renderer)
-    : utl::Stage{screen, windowID, renderer,
-                 flags::STAGES_MAP.at(flags::STAGES::TETRIS)},
-      grid_{screen, *this, colours::gridWalls},
-      activeTetro{screen, grid_, {}, colours::gridBG, I_tetromino},
-      ghostPiece(screen, grid_, activeTetro), entities_{}, possibleShapes_{},
-      upcomingShapes_{}, rng{}, tetroDist{}, score{0}, linesClearedTotal{0},
-      linesClearedThisLevel{0}, level{1},
-      displayBoxTitleFont(utl::createFont(constants::displayBoxFontPath,
-                                          constants::displayBoxFontSize)),
-      heldDisplayBox{
-          screen,
-          {constants::heldDisplayBoxPosX, constants::heldDisplayBoxPosY}},
-      nextDisplayBox{
-          screen,
-          {constants::nextDisplayBoxPosX, constants::nextDisplayBoxPosY}},
-      keyMap{}, canRotate{true}, rotateTimer{0.0}, canMove{true},
-      moveTimer{0.0}, canSoftdrop{true}, softdropTimer{0.0}, canHarddrop{true},
-      running{true}, scoreText{screen, renderer, displayBoxTitleFont,
-                               std::to_string(score), colours::titleText},
-      levelText{screen, renderer, displayBoxTitleFont, std::to_string(level),
-                colours::titleText},
-      linesText{screen, renderer, displayBoxTitleFont,
-                std::to_string(linesClearedTotal), colours::titleText}
+TetrisGame::TetrisGame(utl::Application& tetris_app)
+    : utl::Stage{}, app_{tetris_app},
+      displayBoxTitleFont{utl::createFont(constants::displayBoxFontPath,
+                                          constants::displayBoxFontSize)},
+      scoreText{this, &displayBoxTitleFont, colours::titleText,
+                std::to_string(score)},
+      levelText{this, &displayBoxTitleFont, colours::titleText,
+                std::to_string(level)},
+      linesText{this, &displayBoxTitleFont, colours::titleText,
+                std::to_string(linesClearedTotal)}
 {
     entities_.reserve(0xFF);
     possibleShapes_.reserve(constants::tetrominoes);
@@ -73,50 +55,44 @@ TetrisGame::TetrisGame(utl::Box& screen, uint32_t windowID,
     }
 
     auto heldTitle{std::make_unique<utl::TextObject>(
-        screen, renderer, displayBoxTitleFont, "HELD", colours::titleText)};
-    heldTitle->recentreToEntityX(heldDisplayBox);
-    heldTitle->setPos(
-        {heldTitle->pos().x, heldDisplayBox.pos().y + heldDisplayBox.size().y
-                                 + constants::displayBoxTitleBuffer});
+        this, &displayBoxTitleFont, colours::titleText, "HELD")};
+    heldTitle->recentreX(heldDisplayBox);
+    heldTitle->set_y_pos(heldDisplayBox.pos().y + heldDisplayBox.size().h
+                         + constants::displayBoxTitleBuffer);
 
     auto nextTitle{std::make_unique<utl::TextObject>(
-        screen, renderer, displayBoxTitleFont, "NEXT", colours::titleText)};
-    nextTitle->recentreToEntityX(nextDisplayBox);
-    nextTitle->setPos(
-        {nextTitle->pos().x, nextDisplayBox.pos().y + nextDisplayBox.size().y
-                                 + constants::displayBoxTitleBuffer});
+        this, &displayBoxTitleFont, colours::titleText, "NEXT")};
+    nextTitle->recentreX(nextDisplayBox);
+    nextTitle->set_y_pos(nextDisplayBox.pos().y + nextDisplayBox.size().h
+                         + constants::displayBoxTitleBuffer);
 
     auto scoreTitle{std::make_unique<utl::TextObject>(
-        screen, renderer, displayBoxTitleFont, "SCORE", colours::titleText)};
-    scoreTitle->recentreToEntityX(heldDisplayBox);
-    scoreTitle->recentreToEntityY(grid_);
+        this, &displayBoxTitleFont, colours::titleText, "SCORE")};
+    scoreTitle->recentreX(heldDisplayBox);
+    scoreTitle->recentreY(grid_);
 
-    scoreText.recentreToEntityX(heldDisplayBox);
-    scoreText.setPos(
-        {scoreText.pos().x, scoreTitle->pos().y + scoreTitle->size().y
-                                + constants::displayBoxTitleBuffer});
+    scoreText.recentreX(heldDisplayBox);
+    scoreText.set_y_pos(scoreTitle->pos().y + scoreTitle->size().h
+                        + constants::displayBoxTitleBuffer);
 
     auto levelTitle{std::make_unique<utl::TextObject>(
-        screen, renderer, displayBoxTitleFont, "LEVEL", colours::titleText)};
-    levelTitle->recentreToEntityX(nextDisplayBox);
-    levelTitle->recentreToEntityY(grid_);
+        this, &displayBoxTitleFont, colours::titleText, "LEVEL")};
+    levelTitle->recentreX(nextDisplayBox);
+    levelTitle->recentreY(grid_);
 
-    levelText.recentreToEntityX(nextDisplayBox);
-    levelText.setPos(
-        {levelText.pos().x, levelTitle->pos().y + levelTitle->size().y
-                                + constants::displayBoxTitleBuffer});
+    levelText.recentreX(nextDisplayBox);
+    levelText.set_y_pos(levelTitle->pos().y + levelTitle->size().h
+                        + constants::displayBoxTitleBuffer);
 
     auto linesTitle{std::make_unique<utl::TextObject>(
-        screen, renderer, displayBoxTitleFont, "LINES", colours::titleText)};
-    linesTitle->recentreToEntityX(nextDisplayBox);
-    linesTitle->setPos(
-        {linesTitle->pos().x, levelText.pos().y + levelText.size().y
-                                  + constants::displayBoxTitleBuffer});
+        this, &displayBoxTitleFont, colours::titleText, "LINES")};
+    linesTitle->recentreX(nextDisplayBox);
+    linesTitle->set_y_pos(levelText.pos().y + levelText.size().h
+                          + constants::displayBoxTitleBuffer);
 
-    linesText.recentreToEntityX(nextDisplayBox);
-    linesText.setPos(
-        {linesText.pos().x, linesTitle->pos().y + linesTitle->size().y
-                                + constants::displayBoxTitleBuffer});
+    linesText.recentreX(nextDisplayBox);
+    linesText.set_y_pos(linesTitle->pos().y + linesTitle->size().h
+                        + constants::displayBoxTitleBuffer);
 
     entities_.emplace_back(std::move(heldTitle));
     entities_.emplace_back(std::move(nextTitle));
@@ -129,7 +105,7 @@ std::string
 TetrisGame::handle_input(double, double,
                          std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
-    utl::process_input(screen(), windowID(), keyState);
+    utl::process_input(screen(), app_.window().ID(), keyState);
 
     // quitting
     if (keyState.at(utl::KeyFlag::QUIT)) {
@@ -157,11 +133,11 @@ TetrisGame::handle_input(double, double,
     // rotating
     if (canRotate) {
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
-            activeTetro.rotate(1);
+            activeTetro_.rotate(1);
             canRotate = false;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
-            activeTetro.rotate(-1);
+            activeTetro_.rotate(-1);
             canRotate = false;
         }
     }
@@ -169,10 +145,10 @@ TetrisGame::handle_input(double, double,
     // moving
     if (canMove) {
         if (keyState.at(utl::KeyFlag::K_LEFT)) {
-            activeTetro.move(-1);
+            activeTetro_.move(-1);
             canMove = false;
         } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
-            activeTetro.move(1);
+            activeTetro_.move(1);
             canMove = false;
         }
     }
@@ -180,7 +156,7 @@ TetrisGame::handle_input(double, double,
     // soft-dropping
     if (canSoftdrop) {
         if (keyState.at(utl::KeyFlag::K_DOWN)) {
-            activeTetro.soft_drop();
+            activeTetro_.soft_drop();
             canSoftdrop = false;
         }
     }
@@ -232,7 +208,7 @@ std::string TetrisGame::update(double t, double dt)
     }
 
     grid_.update(t, dt);
-    activeTetro.update(t, dt);
+    activeTetro_.update(t, dt);
     ghostPiece.update(t, dt);
     for (const auto& entity : entities_) {
         entity->update(t, dt);
@@ -249,12 +225,48 @@ void TetrisGame::render(double, double)
     linesText.render(renderer());
     levelText.render(renderer());
     grid_.render(renderer());
-    activeTetro.render(renderer());
+    activeTetro_.render(renderer());
     ghostPiece.render(renderer());
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }
     utl::presentRenderer(renderer());
+}
+
+utl::Application& TetrisGame::app()
+{
+    return app_;
+}
+
+utl::Box& TetrisGame::screen()
+{
+    return app_.screen();
+}
+
+utl::Renderer& TetrisGame::renderer()
+{
+    return app_.renderer();
+}
+
+void TetrisGame::holdTetro()
+{
+    TetrominoShape newHeld{activeTetro_.shape()};
+
+    if (heldDisplayBox.isActivated()) {
+        TetrominoShape newActive{heldDisplayBox.activeShape()};
+        heldDisplayBox.updateShape(newHeld);
+        activeTetro_.reset(newActive);
+    } else {
+        heldDisplayBox.activate();
+        heldDisplayBox.updateShape(newHeld);
+        resetActiveTetro();
+    }
+}
+
+void TetrisGame::hardDrop()
+{
+    activeTetro_.setTopLeft(ghostPiece.origin());
+    grid_.notifyBlockedTetro(activeTetro_);
 }
 
 void TetrisGame::resetActiveTetro()
@@ -263,41 +275,7 @@ void TetrisGame::resetActiveTetro()
     upcomingShapes_.pop();
     nextDisplayBox.updateShape(upcomingShapes_.front());
 
-    activeTetro.reset(newShape);
-}
-
-void TetrisGame::holdTetro()
-{
-    TetrominoShape newHeld{activeTetro.shape()};
-
-    if (heldDisplayBox.isActivated()) {
-        TetrominoShape newActive{heldDisplayBox.activeShape()};
-        heldDisplayBox.updateShape(newHeld);
-        activeTetro.reset(newActive);
-    } else {
-        heldDisplayBox.activate();
-        heldDisplayBox.updateShape(newHeld);
-        resetActiveTetro();
-    }
-}
-
-const TetrominoShape& TetrisGame::getRandomShape()
-{
-    return possibleShapes_[tetroDist(rng.rng())];
-}
-
-void TetrisGame::fillShapeQueue()
-{
-    while (upcomingShapes_.size() < constants::shapeQueueMax) {
-        upcomingShapes_.emplace(getRandomShape());
-    }
-}
-
-
-void TetrisGame::hardDrop()
-{
-    activeTetro.setTopLeft(ghostPiece.topLeft());
-    grid_.notifyBlockedTetro(activeTetro);
+    activeTetro_.reset(newShape);
 }
 
 void TetrisGame::notifyScored(int linesCleared)
@@ -305,7 +283,7 @@ void TetrisGame::notifyScored(int linesCleared)
     linesClearedThisLevel += linesCleared;
     linesClearedTotal += linesCleared;
     linesText.updateText(std::to_string(linesClearedTotal));
-    linesText.recentreToEntityX(nextDisplayBox);
+    linesText.recentreX(nextDisplayBox);
 
     int linePoints{};
     [[maybe_unused]] int tspinPoints{};
@@ -328,7 +306,7 @@ void TetrisGame::notifyScored(int linesCleared)
     int scoreThisFrame{linePoints * level};
     score += scoreThisFrame;
     scoreText.updateText(std::to_string(score));
-    scoreText.recentreToEntityX(heldDisplayBox);
+    scoreText.recentreX(heldDisplayBox);
 
     changeLevel();
 }
@@ -336,6 +314,43 @@ void TetrisGame::notifyScored(int linesCleared)
 void TetrisGame::notifyLoss()
 {
     running = false;
+}
+
+Grid& TetrisGame::grid()
+{
+    return grid_;
+}
+
+const Tetromino& TetrisGame::activeTetro() const
+{
+    return activeTetro_;
+}
+
+int TetrisGame::getScore() const
+{
+    return score;
+}
+
+int TetrisGame::getLines() const
+{
+    return linesClearedTotal;
+}
+
+int TetrisGame::getLevel() const
+{
+    return level;
+}
+
+const TetrominoShape& TetrisGame::getRandomShape()
+{
+    return possibleShapes_[tetroDist(rng.rng())];
+}
+
+void TetrisGame::fillShapeQueue()
+{
+    while (upcomingShapes_.size() < constants::shapeQueueMax) {
+        upcomingShapes_.emplace(getRandomShape());
+    }
 }
 
 void TetrisGame::changeLevel()
@@ -349,9 +364,9 @@ void TetrisGame::changeLevel()
     ++level;
 
     levelText.updateText(std::to_string(level));
-    levelText.recentreToEntityX(nextDisplayBox);
+    levelText.recentreX(nextDisplayBox);
 
-    activeTetro.changeTickTime(1.0 - (0.0625 * level));
+    activeTetro_.changeTickTime(1.0 - (0.0625 * level));
 
     linesClearedThisLevel -= constants::linesPerLevel;
 }

@@ -3,31 +3,32 @@
 #pragma once
 
 #include "Cell.h"
-#include "TetrisGame.h"
+#include "GridPoint.h"
 #include "TetrominoShape.h"
-#include "utl_Vec2d.hpp"
+#include "colours.h"
 
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Vec2d.hpp>
 #include <vector>
 
-class Grid;
-class Tetromino;
+class TetrisGame;
 
 class GhostPiece : public utl::Entity {
 public:
-    GhostPiece(TetrisGame& owner);
+    GhostPiece(TetrisGame* owner);
 
-    void update(double t, double dt) override;
-    void render(utl::Renderer& renderer) override;
-    const std::string& type() const override { return type_; }
-    const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Size& size() const override { return size_; }
-    const utl::Stage& stage() const override { return owner_; }
+    void update(double t, double dt) override final;
+    void render(utl::Renderer& renderer) override final;
+    const std::string& type() const override final;
+    const utl::Vec2d& pos() const override final;
+    const utl::Size& size() const override final;
+    utl::Stage& stage() override final;
+    void set_pos(const utl::Vec2d& pos) override final;
 
-    const GridPoint& origin() const { return origin_; }
+    const GridPoint& origin() const;
 
 private:
     void init();
@@ -36,15 +37,15 @@ private:
     void repositionInScreenSpace();
 
 private:
-    std::string type_;
-    utl::Vec2d pos_;
-    utl::Size size_;
-    TetrisGame& owner_;
+    TetrisGame* owner_{nullptr};
+    std::string type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GHOST_PIECE)};
+    utl::Vec2d pos_{};
+    utl::Size size_{};
 
-    utl::Colour colour_;
+    utl::Colour colour_{colours::Z_tetrominoCol};
 
-    GridPoint origin_;
-    std::vector<Cell> shape_;
-    TetrominoShape currentShape_;
-    size_t currentRotation_;
+    GridPoint origin_{};
+    std::vector<Cell> shape_{};
+    TetrominoShape currentShape_{Z_tetromino};
+    size_t currentRotation_{};
 };

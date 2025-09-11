@@ -5,7 +5,6 @@
 #include "Tetromino.h"
 #include "colours.h"
 #include "constants.h"
-#include "flags.h"
 
 #include <stdexcept>
 #include <utl_Box.hpp>
@@ -21,36 +20,14 @@ static void clearLines(std::vector<Cell>& grid,
 static void applyGravity(std::vector<Cell>& grid,
                          const std::vector<int>& clearedLines);
 
-Grid::Grid(TetrisGame& owner)
-    : utl::Entity{},
-      innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
-                     constants::gridPosY + constants::gridWallThickness},
-      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID)},
-      pos_{constants::gridPosX, constants::gridPosY},
-      size_{(constants::gridWallThickness * 2)
-                + (constants::gridWidth * constants::cellWidth),
-            (constants::gridWallThickness * 2)
-                + constants::gridHeight * constants::cellHeight},
-      owner_{owner}, walls{}, grid{}, col{colours::gridBG},
-      linesClearedTotal{0}, numLinesClearedThisFrame{0}, linesClearedThisFrame{}
-{}
+Grid::Grid(TetrisGame* owner) : Grid{owner, colours::gridBG} {}
 
-Grid::Grid(TetrisGame& owner, const utl::Colour& colour)
-    : utl::Entity{},
-      innerTopLeftPt{constants::gridPosX + constants::gridWallThickness,
-                     constants::gridPosY + constants::gridWallThickness},
-      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID)},
-      pos_{constants::gridPosX, constants::gridPosY},
-      size_{(constants::gridWallThickness * 2)
-                + (constants::gridWidth * constants::cellWidth),
-            (constants::gridWallThickness * 2)
-                + constants::gridHeight * constants::cellHeight},
-      owner_{owner}, walls{}, grid{}, col{colour}, linesClearedTotal{0},
-      numLinesClearedThisFrame{0}, linesClearedThisFrame{}
+Grid::Grid(TetrisGame* owner, const utl::Colour& colour)
+    : utl::Entity{}, owner_{owner}, col{colour}
 {
     linesClearedThisFrame.reserve(static_cast<size_t>(constants::gridHeight));
     for (size_t i{0}; i < constants::gridWidth * constants::gridHeight; ++i) {
-        grid.emplace_back(*this);
+        grid_.emplace_back(owner_);
     }
     placeWalls();
     placeBGCells();
@@ -67,13 +44,41 @@ void Grid::render(utl::Renderer& renderer)
 {
     utl::Colour old{utl::getRendererDrawColour(renderer)};
     utl::setRendererDrawColour(renderer, col);
-    for (utl::Rect& wall : walls) {
+    for (utl::Rect& wall : walls_) {
         wall.draw(renderer);
     }
-    for (Cell& cell : grid) {
+    for (Cell& cell : grid_) {
         cell.render(renderer);
     }
     utl::setRendererDrawColour(renderer, old);
+}
+
+const std::string& Grid::type() const
+{
+    return type_;
+}
+
+const utl::Vec2d& Grid::pos() const
+{
+    return pos_;
+}
+
+const utl::Size& Grid::size() const
+{
+    return size_;
+}
+
+utl::Stage& Grid::stage()
+{
+    if (!owner_)
+        throw std::runtime_error("Grid has no owner!");
+    return *owner_;
+}
+
+void Grid::set_pos(const utl::Vec2d& new_pos)
+{
+    pos_ = new_pos;
+    placeWalls();
 }
 
 const Cell& Grid::get(const GridPoint& coord) const
@@ -81,37 +86,74 @@ const Cell& Grid::get(const GridPoint& coord) const
     if (coord.x < 0 || coord.y < 0)
         throw std::runtime_error("overflow");
 
-    return grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)];
+    return grid_[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)];
+}
+
+const std::vector<Cell>& Grid::grid() const
+{
+    return grid_;
+}
+
+void Grid::setCellColour(const GridPoint& coord, const utl::Colour& colour)
+{
+    grid_[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)]
+        .setColour(colour);
+}
+
+void Grid::setCellOpen(const GridPoint& coord, bool open)
+{
+    grid_[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)]
+        .setOpen(open);
+}
+
+void Grid::notifyBlockedTetro(const Tetromino& tetromino)
+{
+    bakeActiveTetromino(tetromino);
+    owner_->resetActiveTetro();
+
+    numLinesClearedThisFrame = countLinesToClear(grid_, linesClearedThisFrame);
+
+    if (numLinesClearedThisFrame > 0) {
+        clearLines(grid_, linesClearedThisFrame);
+        applyGravity(grid_, linesClearedThisFrame);
+        owner_->notifyScored(numLinesClearedThisFrame);
+    }
+}
+
+void Grid::notifyLoss(const Tetromino& tetromino)
+{
+    bakeActiveTetromino(tetromino);
+    owner_->notifyLoss();
 }
 
 void Grid::placeWalls()
 {
     for (size_t i{0}; i < constants::gridWalls; ++i) {
-        int w{}, h{}, x{}, y{};
+        utl::RectDimensions rect{};
         if (i % 2 == 0) {
             // side walls
-            w = constants::gridWallThickness;
-            h = (constants::gridWallThickness * 2)
+            rect.w = constants::gridWallThickness;
+            rect.h = (constants::gridWallThickness * 2)
                 + (constants::cellHeight * constants::gridHeight);
-            x = static_cast<int>(pos().x)
-                + (static_cast<int>(i)
-                   * (constants::cellWidth * constants::gridWidth) / 2)
-                + (static_cast<int>(i) * (constants::gridWallThickness / 2));
-            y = static_cast<int>(pos().y);
+            rect.x = static_cast<float>(pos().x)
+                + (static_cast<float>(i)
+                   * (constants::cellWidth * constants::gridWidth) / 2.0f)
+                + (static_cast<float>(i) * (constants::gridWallThickness / 2.0f));
+            rect.y = static_cast<float>(pos().y);
         } else {
             // top and bottom
-            w = (constants::gridWallThickness * 2)
+            rect.w = (constants::gridWallThickness * 2.0f)
                 + (constants::cellWidth * constants::gridWidth);
-            h = constants::gridWallThickness;
+            rect.h = constants::gridWallThickness;
 
-            x = static_cast<int>(pos().x);
-            y = static_cast<int>(pos().y)
-                + ((static_cast<int>(i) - 1)
-                   * (constants::cellHeight * (constants::gridHeight / 2)))
-                + (static_cast<int>(i) - 1)
-                      * (constants::gridWallThickness / 2);
+            rect.x = static_cast<float>(pos().x);
+            rect.y = static_cast<float>(pos().y)
+                + ((static_cast<float>(i) - 1.0f)
+                   * (constants::cellHeight * (constants::gridHeight / 2.0f)))
+                + (static_cast<float>(i) - 1.0f)
+                      * (constants::gridWallThickness / 2.0f);
         }
-        walls[i] = utl::Rect{{x, y, w, h}};
+        walls_[i] = utl::Rect{rect};
     }
 }
 
@@ -122,41 +164,11 @@ void Grid::placeBGCells()
 
     for (size_t y{0}; y < constants::gridHeight; ++y) {
         for (size_t x{0}; x < constants::gridWidth; ++x) {
-            grid[x + y * constants::gridWidth].set_pos(
+            grid_[x + y * constants::gridWidth].set_pos(
                 {base_pos.x + static_cast<double>(x * constants::cellWidth),
                  base_pos.y + static_cast<double>(y * constants::cellHeight)});
         }
     }
-}
-
-void Grid::enableRenderBGCells()
-{
-    for (size_t i{0}; i < grid.size(); ++i) {
-        grid[i].setColour(colours::gridBG);
-        grid[i].makeRender();
-    }
-}
-
-void Grid::notifyBlockedTetro(const Tetromino& tetromino)
-{
-    TetrisGame& tetrisGame{dynamic_cast<TetrisGame&>(owner_)};
-    bakeActiveTetromino(tetromino);
-    tetrisGame.resetActiveTetro();
-
-    numLinesClearedThisFrame = countLinesToClear(grid, linesClearedThisFrame);
-
-    if (numLinesClearedThisFrame > 0) {
-        clearLines(grid, linesClearedThisFrame);
-        applyGravity(grid, linesClearedThisFrame);
-        tetrisGame.notifyScored(numLinesClearedThisFrame);
-    }
-}
-
-void Grid::notifyLoss(const Tetromino& tetromino)
-{
-    TetrisGame& tetrisGame{dynamic_cast<TetrisGame&>(owner_)};
-    bakeActiveTetromino(tetromino);
-    tetrisGame.notifyLoss();
 }
 
 void Grid::bakeActiveTetromino(const Tetromino& tetromino)
@@ -165,11 +177,20 @@ void Grid::bakeActiveTetromino(const Tetromino& tetromino)
 
     for (const GridPoint& cell :
          tetromino.shape().at(tetromino.currentRotation())) {
-        Cell& gridCell{grid[static_cast<size_t>(
+        Cell& gridCell{grid_[static_cast<size_t>(
             (cell.x + tetromino.topLeft().x)
             + (cell.y + tetromino.topLeft().y) * constants::gridWidth)]};
         gridCell.setColour(newColour);
         gridCell.close();
+    }
+}
+
+
+void Grid::enableRenderBGCells()
+{
+    for (size_t i{0}; i < grid_.size(); ++i) {
+        grid_[i].setColour(colours::gridBG);
+        grid_[i].makeRender();
     }
 }
 
@@ -234,14 +255,3 @@ static void applyGravity(std::vector<Cell>& grid,
     }
 }
 
-void Grid::setCellColour(const GridPoint& coord, const utl::Colour& colour)
-{
-    grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)]
-        .setColour(colour);
-}
-
-void Grid::setCellOpen(const GridPoint& coord, bool open)
-{
-    grid[static_cast<size_t>(coord.x + coord.y * constants::gridWidth)].setOpen(
-        open);
-}

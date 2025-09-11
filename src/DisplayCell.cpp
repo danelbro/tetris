@@ -1,10 +1,10 @@
 #include "DisplayCell.h"
 
 #include "DisplayBox.h"
-#include "GridPoint.h"
+#include "TetrisGame.h"
 #include "constants.h"
-#include "flags.h"
 
+#include <stdexcept>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -14,22 +14,18 @@ static std::array<utl::Rect, constants::gridWalls>
 createBorders(utl::RectDimensions rect);
 static utl::Colour shadeBorder(const utl::Colour& mainCol);
 
-DisplayCell::DisplayCell(DisplayBox& grid, const GridPoint& coord,
-                         const utl::Colour& colour)
-    : utl::Entity{}, col_{colour}, borderCol_{shadeBorder(colour)}, grid_{grid},
-      coord_{coord}, renderMe_{true},
-      rect_{{static_cast<int>(grid_.pos().x), static_cast<int>(grid_.pos().y),
-             constants::displayCellWidth, constants::displayCellHeight}},
-      borders_{createBorders(
-          {static_cast<int>(grid.pos().x), static_cast<int>(grid.pos().y),
-           constants::displayCellWidth, constants::displayCellHeight})},
-      type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)},
-      pos_{grid.pos().x + constants::displayBoxWallsThickness
+DisplayCell::DisplayCell(TetrisGame* owner, const DisplayBox& displayBox,
+                         const GridPoint& coord, const utl::Colour& colour)
+    : utl::Entity{}, owner_{owner},
+      pos_{displayBox.pos().x + constants::displayBoxWallsThickness
                + (constants::displayCellWidth * coord.x),
-           grid.pos().y + constants::displayBoxWallsThickness
+           displayBox.pos().y + constants::displayBoxWallsThickness
                + (constants::displayCellWidth * coord.y)},
-      size_{constants::displayCellWidth, constants::displayCellHeight},
-      owner_{grid.stage()}
+      col_{colour}, borderCol_{shadeBorder(colour)}, coord_{coord},
+      renderMe_{true},
+      rect_{{static_cast<float>(pos_.x), static_cast<float>(pos_.y),
+             constants::displayCellWidth, constants::displayCellHeight}},
+      borders_{createBorders({rect_.x(), rect_.y(), rect_.w(), rect_.h()})}
 {}
 
 void DisplayCell::update(double, double) {}
@@ -44,6 +40,32 @@ void DisplayCell::render(utl::Renderer& renderer)
         for (auto& line : borders_) line.draw(renderer);
         utl::setRendererDrawColour(renderer, oldCol);
     }
+}
+
+const std::string& DisplayCell::type() const
+{
+    return type_;
+}
+
+const utl::Vec2d& DisplayCell::pos() const
+{
+    return pos_;
+}
+
+const utl::Size& DisplayCell::size() const
+{
+    return size_;
+}
+
+utl::Stage& DisplayCell::stage()
+{
+    if(!owner_) throw std::runtime_error("DisplayCell has no owner!");
+    return *owner_;
+}
+
+void DisplayCell::set_pos(const utl::Vec2d& newPos)
+{
+    pos_ = newPos;
 }
 
 void DisplayCell::setCol(const utl::Colour& newCol)

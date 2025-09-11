@@ -1,13 +1,17 @@
+// -*- C++ -*-
+
 #pragma once
 
-#include "Grid.h"
+#include "InertGrid.h"
+#include "flags.h"
 
-#include <cstdint>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 #include <utl_TextObject.hpp>
+
+class Grid;
 
 struct ScoresPacket {
     int score;
@@ -17,19 +21,23 @@ struct ScoresPacket {
 
 class EndScreen : public utl::Stage {
 public:
-    EndScreen(utl::Box& screen_space, uint32_t windowID,
-              utl::Renderer& renderer, const Grid& grid,
+    EndScreen(utl::Application& tetrisApp, const Grid& grid,
               const ScoresPacket& scoresPacket);
 
-    std::string update(double t, double dt);
-    std::string
-    handle_input(double t, double dt,
-                 std::array<bool, utl::KeyFlag::K_TOTAL>& keyState);
+    std::string handle_input(
+        double t, double dt,
+        std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override final;
+    std::string update(double t, double dt) override final;
+    void render(double t, double dt) override final;
 
-    void render(double t, double dt);
+    utl::Application& app() override final;
+    utl::Box& screen() override final;
+    utl::Renderer& renderer() override final;
 
 private:
-    Grid grid_;
+    std::string label{flags::STAGES_MAP.at(flags::STAGES::END_SCREEN)};
+    utl::Application& app_;
+    InertGrid grid_;
     int score_;
     int level_;
     int lines_;

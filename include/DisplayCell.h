@@ -1,43 +1,45 @@
 #pragma once
 
-#include "Grid.h"
+#include "GridPoint.h"
 #include "colours.h"
 #include "constants.h"
-#include "utl_Stage.hpp"
+#include "flags.h"
 
 #include <array>
 #include <string>
-#include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 
+class TetrisGame;
 class DisplayBox;
 
 struct DisplayCell : public utl::Entity {
-    DisplayCell(DisplayBox& grid, const GridPoint& coord = {0, 0},
-                const utl::Colour& colour = colours::gridBG);
+    DisplayCell() = default;
+    DisplayCell(TetrisGame* owner, const DisplayBox& displayBox,
+                const GridPoint& coord, const utl::Colour& colour);
 
-    void update(double t, double dt) override;
-    void render(utl::Renderer& renderer) override;
-    const std::string& type() const override { return type_; }
-    const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Size& size() const override { return size_; };
-    const utl::Stage& stage() const override { return owner_; }
+    void update(double t, double dt) override final;
+    void render(utl::Renderer& renderer) override final;
+    const std::string& type() const override final;
+    const utl::Vec2d& pos() const override final;
+    const utl::Size& size() const override final;
+    utl::Stage& stage() override final;
+    void set_pos(const utl::Vec2d& newPos) override final;
 
     void setCol(const utl::Colour& newCol);
 
-    utl::Colour col_;
-    utl::Colour borderCol_;
-    DisplayBox& grid_;
-    GridPoint coord_;
-    bool renderMe_;
-    utl::Rect rect_;
-    std::array<utl::Rect, constants::gridWalls> borders_;
-
 private:
-    std::string type_;
-    utl::Vec2d pos_;
-    utl::Size size_;
-    const utl::Stage& owner_;
+    std::string type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)};
+    TetrisGame* owner_{nullptr};
+    utl::Vec2d pos_{};
+    utl::Size size_{constants::displayCellWidth, constants::displayCellHeight};
+
+public:
+    utl::Colour col_{colours::Z_tetrominoCol};
+    utl::Colour borderCol_{colours::Z_tetrominoCol};
+    GridPoint coord_{};
+    bool renderMe_{false};
+    utl::Rect rect_{};
+    std::array<utl::Rect, constants::gridWalls> borders_{};
 };

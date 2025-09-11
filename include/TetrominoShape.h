@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "Grid.h"
+#include "GridPoint.h"
 #include "constants.h"
 
 #include <array>

@@ -1,37 +1,37 @@
+// -*- C++ -*-
+
 #pragma once
 
 #include "Cell.h"
-#include "TetrisGame.h"
+#include "GridPoint.h"
 #include "constants.h"
 
-#include "utl_Vec2d.hpp"
 #include <array>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
+#include <utl_Vec2d.hpp>
 
+class TetrisGame;
 class Tetromino;
-
-struct GridPoint {
-    int x;
-    int y;
-};
 
 class Grid : public utl::Entity {
 public:
-    Grid(TetrisGame& owner);
-    Grid(TetrisGame& owner, const utl::Colour& colour);
+    Grid() = default;
+    Grid(TetrisGame* owner);
+    Grid(TetrisGame* owner, const utl::Colour& colour);
 
-    void update(double t, double dt) override;
-    void render(utl::Renderer& renderer) override;
-    const std::string& type() const override { return type_; }
-    const utl::Vec2d& pos() const override { return pos_; }
-    const utl::Size& size() const override { return size_; }
-    const utl::Stage& stage() const override { return owner_; };
-    void set_pos(const utl::Vec2d& new_pos) override;
+    void update(double t, double dt) override final;
+    void render(utl::Renderer& renderer) override final;
+    const std::string& type() const override final;
+    const utl::Vec2d& pos() const override final;
+    const utl::Size& size() const override final;
+    utl::Stage& stage() override final;
+    void set_pos(const utl::Vec2d& new_pos) override final;
 
     const Cell& get(const GridPoint& coord) const;
+    const std::vector<Cell>& grid() const;
 
     void setCellColour(const GridPoint& coord, const utl::Colour& col);
     void setCellOpen(const GridPoint& coord, bool open);
@@ -40,7 +40,9 @@ public:
     void notifyLoss(const Tetromino& tetromino);
 
 public:
-    const utl::Vec2d innerTopLeftPt;
+    const utl::Vec2d innerTopLeftPt{
+        constants::gridPosX + constants::gridWallThickness,
+        constants::gridPosY + constants::gridWallThickness};
 
 private:
     void placeWalls();
@@ -49,16 +51,19 @@ private:
     void bakeActiveTetromino(const Tetromino& tetromino);
 
 private:
-    std::string type_;
-    utl::Vec2d pos_;
-    utl::Size size_;
-    TetrisGame& owner_;
+    TetrisGame* owner_{nullptr};
+    std::string type_{flags::ENTITIES_MAP.at(flags::ENTITIES::GRID)};
+    utl::Vec2d pos_{constants::gridPosX, constants::gridPosY};
+    utl::Size size_{(constants::gridWallThickness * 2)
+                        + (constants::gridWidth * constants::cellWidth),
+                    (constants::gridWallThickness * 2)
+                        + (constants::gridHeight * constants::cellHeight)};
 
-    std::array<utl::Rect, constants::gridWalls> walls;
-    std::vector<Cell> grid;
+    std::array<utl::Rect, constants::gridWalls> walls_{};
+    std::vector<Cell> grid_{};
 
-    utl::Colour col;
-    int linesClearedTotal;
-    int numLinesClearedThisFrame;
-    std::vector<int> linesClearedThisFrame;
+    utl::Colour col{};
+    int linesClearedTotal{};
+    int numLinesClearedThisFrame{};
+    std::vector<int> linesClearedThisFrame{};
 };

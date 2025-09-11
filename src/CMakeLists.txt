@@ -7,10 +7,12 @@ target_sources(tetris PRIVATE
   "EndScreen.cpp" "../include/EndScreen.h"
   "GhostPiece.cpp" "../include/GhostPiece.h"
   "Grid.cpp" "../include/Grid.h"
+  "InertGrid.cpp" "../include/InertGrid.h"
   "TetrisApp.cpp" "../include/TetrisApp.h"
   "TetrisGame.cpp" "../include/TetrisGame.h"
   "Tetromino.cpp" "../include/Tetromino.h"
   "TitleScreen.cpp" "../include/TitleScreen.h"
+  "../include/GridPoint.h"
   "../include/constants.h"
   "../include/flags.h"
   )
@@ -27,7 +29,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 	$<$<OR:${is_CC}>:-pedantic>
 	$<$<OR:${is_CC}>:-pedantic-errors>
 	$<$<OR:${is_CC}>:-Wall>
-	$<$<OR:${is_CC}>:-Weffc++>
+#	$<$<OR:${is_CC}>:-Weffc++>
 	$<$<OR:${is_CC}>:-Wextra>
 	$<$<OR:${is_CC}>:-Wconversion>
 	$<$<OR:${is_CC}>:-Wsign-conversion>

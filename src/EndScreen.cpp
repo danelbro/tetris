@@ -1,97 +1,85 @@
 #include "EndScreen.h"
+
+#include "Grid.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
 #include <string>
+#include <utl_Application.hpp>
 #include <utl_Box.hpp>
-#include <utl_Stage.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Stage.hpp>
 
-EndScreen::EndScreen(utl::Box& screen_space, uint32_t windowID,
-                     utl::Renderer& rendererRef, const Grid& grid,
+EndScreen::EndScreen(utl::Application& tetrisApp, const Grid& grid,
                      const ScoresPacket& scoresPacket)
-    : utl::Stage{screen_space, windowID, rendererRef,
-                 flags::STAGES_MAP.at(flags::STAGES::END_SCREEN)},
-      grid_{screen_space, *this, colours::gridWalls},
+    : utl::Stage{}, app_{tetrisApp}, grid_{this, grid},
       score_{scoresPacket.score}, level_{scoresPacket.level},
       lines_{scoresPacket.lines},
       smallFont_{utl::createFont(constants::displayBoxFontPath,
                                  constants::displayBoxFontSize)},
       largeFont_{utl::createFont(constants::instructionsFontPath,
                                  constants::instructionsFontSize)},
-      gameText_{screen(), renderer(), largeFont_, "GAME",
-                colours::instructionsText},
-      overText_{screen(), renderer(), largeFont_, "OVER",
-                colours::instructionsText},
-      scoreTitle_{screen(), renderer(), smallFont_, "SCORE",
-                  colours::instructionsText},
-      scoreText_{screen(), renderer(), smallFont_, std::to_string(score_),
-                 colours::instructionsText},
-      levelTitle_{screen(), renderer(), smallFont_, "LEVEL",
-                  colours::instructionsText},
-      levelText_{screen(), renderer(), smallFont_, std::to_string(level_),
-                 colours::instructionsText},
-      linesTitle_{screen(), renderer(), smallFont_, "LINES",
-                  colours::instructionsText},
-      linesText_{screen(), renderer(), smallFont_, std::to_string(lines_),
-                 colours::instructionsText}
+      gameText_{this, &largeFont_, colours::instructionsText, "GAME"},
+      overText_{this, &largeFont_, colours::instructionsText, "OVER"},
+      scoreTitle_{this, &smallFont_, colours::instructionsText, "SCORE"},
+      scoreText_{this, &smallFont_, colours::instructionsText,
+                 std::to_string(score_)},
+      levelTitle_{this, &smallFont_, colours::instructionsText, "LEVEL"},
+      levelText_{this, &smallFont_, colours::instructionsText,
+                 std::to_string(level_)},
+      linesTitle_{this, &smallFont_, colours::instructionsText, "LINES"},
+      linesText_{this, &smallFont_, colours::instructionsText,
+                 std::to_string(lines_)}
 {
     for (int y{0}; y < constants::gridHeight; ++y) {
         for (int x{0}; x < constants::gridWidth; ++x) {
-            const Cell& activeCell{grid.get(x, y)};
-            grid_.setCellColour(x, y, activeCell.colour());
-            grid_.setCellOpen(x, y,
-                              activeCell.isOpen());  // not strictly necessary
+            const Cell& activeCell{grid.get({x, y})};
+            grid_.setCellColour({x, y}, activeCell.colour());
         }
     }
 
     // position TextObjects
-    gameText_.setPos({(grid_.pos().x * 2 / 3) - (gameText_.size().x / 2),
-                      grid_.pos().y + constants::displayBoxWallsThickness
-                          + (constants::displayBoxGridHeight
-                             * constants::displayCellHeight / 2.0)});
+    gameText_.set_pos({(grid_.pos().x * 2 / 3) - (gameText_.size().w / 2),
+                       grid_.pos().y + constants::displayBoxWallsThickness
+                           + (constants::displayBoxGridHeight
+                              * constants::displayCellHeight / 2.0)});
 
-    overText_.setPos({((grid_.pos().x + grid_.size().x)
-                       + ((screen().w - (grid_.pos().x + grid_.size().x)) / 3))
-                          - (overText_.size().x / 2),
-                      grid_.pos().y + constants::displayBoxWallsThickness
-                          + (constants::displayBoxGridHeight
-                             * constants::displayCellHeight / 2.0)});
+    overText_.set_pos({((grid_.pos().x + grid_.size().w)
+                        + ((screen().w - (grid_.pos().x + grid_.size().w)) / 3))
+                           - (overText_.size().w / 2),
+                       grid_.pos().y + constants::displayBoxWallsThickness
+                           + (constants::displayBoxGridHeight
+                              * constants::displayCellHeight / 2.0)});
 
-    scoreTitle_.recentreToEntityX(gameText_);
-    scoreTitle_.recentreToEntityY(grid_);
+    scoreTitle_.recentreX(gameText_);
+    scoreTitle_.recentreY(grid_);
 
-    scoreText_.recentreToEntityX(scoreTitle_);
-    scoreText_.setPos(
-        {scoreText_.pos().x, scoreTitle_.pos().y + scoreTitle_.size().y
-                                 + constants::displayBoxTitleBuffer});
+    scoreText_.recentreX(scoreTitle_);
+    scoreText_.set_y_pos(scoreTitle_.pos().y + scoreTitle_.size().h
+                         + constants::displayBoxTitleBuffer);
 
-    levelTitle_.recentreToEntityX(overText_);
-    levelTitle_.recentreToEntityY(grid_);
+    levelTitle_.recentreX(overText_);
+    levelTitle_.recentreY(grid_);
 
-    levelText_.recentreToEntityX(levelTitle_);
-    levelText_.setPos(
-        {levelText_.pos().x, levelTitle_.pos().y + levelTitle_.size().y
-                                 + constants::displayBoxTitleBuffer});
+    levelText_.recentreX(levelTitle_);
+    levelText_.set_y_pos(levelTitle_.pos().y + levelTitle_.size().h
+                         + constants::displayBoxTitleBuffer);
 
-    linesTitle_.recentreToEntityX(levelText_);
-    linesTitle_.setPos(
-        {linesTitle_.pos().x, levelText_.pos().y + levelText_.size().y
-                                  + constants::displayBoxTitleBuffer});
+    linesTitle_.recentreX(levelText_);
+    linesTitle_.set_y_pos(levelText_.pos().y + levelText_.size().h
+                          + constants::displayBoxTitleBuffer);
 
-    linesText_.recentreToEntityX(linesTitle_);
-    linesText_.setPos(
-        {linesText_.pos().x, linesTitle_.pos().y + linesTitle_.size().y
-                                 + constants::displayBoxTitleBuffer});
+    linesText_.recentreX(linesTitle_);
+    linesText_.set_y_pos(linesTitle_.pos().y + linesTitle_.size().h
+                         + constants::displayBoxTitleBuffer);
 }
 
 std::string
 EndScreen::handle_input(double, double,
                         std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
-    utl::Box screenspace{screen()};
-    utl::process_input(screenspace, windowID(), keyState);
+    utl::process_input(screen(), app_.window().ID(), keyState);
 
     // quitting
     if (keyState.at(utl::KeyFlag::QUIT)) {
@@ -125,4 +113,19 @@ void EndScreen::render(double, double)
     linesTitle_.render(renderer());
     linesText_.render(renderer());
     utl::presentRenderer(renderer());
+}
+
+utl::Application& EndScreen::app()
+{
+    return app_;
+}
+
+utl::Box& EndScreen::screen()
+{
+    return app_.screen();
+}
+
+utl::Renderer& EndScreen::renderer()
+{
+    return app_.renderer();
 }

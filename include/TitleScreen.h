@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include "constants.h"
+#include "flags.h"
+
 #include <array>
-#include <cstdint>
 #include <memory>
 #include <string>
+#include <utl_Application.hpp>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -20,17 +23,24 @@ class TitleScreen : public utl::Stage {
 public:
     /// Constructs a TitleScreen
     /// @param screen
-    TitleScreen(utl::Box& screen, uint32_t windowID, utl::Renderer& renderer);
+    TitleScreen(utl::Application& tetrisApp);
 
-    std::string
-    handle_input(double t, double dt,
-                 std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override;
-    std::string update(double t, double dt) override;
-    void render(double t, double dt) override;
+    std::string handle_input(
+        double t, double dt,
+        std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override final;
+    std::string update(double t, double dt) override final;
+    void render(double t, double dt) override final;
+
+    utl::Application& app() override final;
+    utl::Box& screen() override final;
+    utl::Renderer& renderer() override final;
 
 private:
-    utl::Font titleFont_;
-    utl::Font instructionsFont_;
-
-    std::vector<std::unique_ptr<utl::Entity>> entities_;
+    std::string label{flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN)};
+    utl::Application& owner_;
+    utl::Font titleFont_{
+        utl::createFont(constants::titleFontPath, constants::titleFontSize)};
+    utl::Font instructionsFont_{utl::createFont(
+        constants::instructionsFontPath, constants::instructionsFontSize)};
+    std::vector<std::unique_ptr<utl::Entity>> entities_{};
 };
