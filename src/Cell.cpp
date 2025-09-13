@@ -13,14 +13,19 @@ static std::array<utl::Rect, constants::gridWalls>
 createBorders(utl::RectDimensions rect);
 static utl::Colour shadeBorder(const utl::Colour& mainCol);
 
-Cell::Cell(utl::Stage* owner) : Cell{owner, {}, {}, {}} {}
+Cell::Cell(utl::Stage* owner)
+    : Cell{owner,
+           colours::gridBG,
+           {0, 0},
+           {0.0f, 0.0f, static_cast<float>(constants::cellWidth),
+            static_cast<float>(constants::cellHeight)}}
+{}
 
 Cell::Cell(utl::Stage* owner, const utl::Colour& colour, const GridPoint& coord,
            const utl::RectDimensions& rect)
-    : utl::Entity{}, stage_{owner}, rect_{rect}, pos_{rect.x, rect.y},
-      size_{rect.w, rect.h}, borders_{createBorders(rect)}, col{colour},
-      borderCol{shadeBorder(colour)}, renderMe_{false}, coord_{coord},
-      isOpen_{true}
+    : utl::Entity{}, stage_{owner}, pos_{rect.x, rect.y}, size_{rect.w, rect.h},
+      rect_{rect}, borders_{createBorders(rect)}, col{colour},
+      borderCol{shadeBorder(colour)}, coord_{coord}
 {}
 
 void Cell::update(double, double) {}
@@ -137,9 +142,9 @@ static utl::Colour shadeBorder(const utl::Colour& mainCol)
 {
     const double SHADE_FACTOR{0.1};
     utl::Colour borderCol{mainCol};
-    borderCol.r *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
-    borderCol.g *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
-    borderCol.b *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
+    borderCol.r = static_cast<uint8_t>(borderCol.r * (1.0 - SHADE_FACTOR));
+    borderCol.g = static_cast<uint8_t>(borderCol.g * (1.0 - SHADE_FACTOR));
+    borderCol.b = static_cast<uint8_t>(borderCol.b * (1.0 - SHADE_FACTOR));
 
     return borderCol;
 }
@@ -147,7 +152,7 @@ static utl::Colour shadeBorder(const utl::Colour& mainCol)
 static std::array<utl::Rect, constants::gridWalls>
 createBorders(utl::RectDimensions rect)
 {
-    const int BORDER_WIDTH{1};
+    const float BORDER_WIDTH{1.0f};
 
     std::array<utl::Rect, constants::gridWalls> borders;
     borders[0].reset({rect.x, rect.y, BORDER_WIDTH, rect.h});

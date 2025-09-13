@@ -21,25 +21,15 @@ static const utl::Vec2d newpos{
 
 TetrisGame::TetrisGame(utl::Application& tetris_app)
     : utl::Stage{}, app_{tetris_app},
-      displayBoxTitleFont{utl::createFont(constants::displayBoxFontPath,
-                                          constants::displayBoxFontSize)},
       scoreText{this, &displayBoxTitleFont, colours::titleText,
                 std::to_string(score)},
       levelText{this, &displayBoxTitleFont, colours::titleText,
                 std::to_string(level)},
       linesText{this, &displayBoxTitleFont, colours::titleText,
-                std::to_string(linesClearedTotal)}
-{
+                std::to_string(linesClearedTotal)},
+      pauseText{this, &pauseFont, colours::titleText, std::string{"PAUSE"}}
+    {
     entities_.reserve(0xFF);
-    possibleShapes_.reserve(constants::tetrominoes);
-
-    possibleShapes_.emplace_back(I_tetromino);
-    possibleShapes_.emplace_back(O_tetromino);
-    possibleShapes_.emplace_back(T_tetromino);
-    possibleShapes_.emplace_back(J_tetromino);
-    possibleShapes_.emplace_back(L_tetromino);
-    possibleShapes_.emplace_back(S_tetromino);
-    possibleShapes_.emplace_back(Z_tetromino);
 
     rng.rng().seed();
     tetroDist = std::uniform_int_distribution<std::mt19937::result_type>{
@@ -94,6 +84,8 @@ TetrisGame::TetrisGame(utl::Application& tetris_app)
     linesText.set_y_pos(linesTitle->pos().y + linesTitle->size().h
                         + constants::displayBoxTitleBuffer);
 
+    pauseText.recentre(app_.screen());
+
     entities_.emplace_back(std::move(heldTitle));
     entities_.emplace_back(std::move(nextTitle));
     entities_.emplace_back(std::move(scoreTitle));
@@ -112,9 +104,32 @@ TetrisGame::handle_input(double, double,
         return flags::STAGES_MAP.at(flags::STAGES::QUIT);
     }
 
-    if (keyState.at(utl::KeyFlag::K_ESCAPE)) {
-        return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
+    // pausing and quitting to title
+    if (!keyMap.at(utl::KeyFlag::K_ESCAPE)) {
+        if (keyState.at(utl::KeyFlag::K_ESCAPE)) {
+            if (isPaused)
+                return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
+            isPaused = true;
+            keyMap.at(utl::KeyFlag::K_ESCAPE) =
+                keyState.at(utl::KeyFlag::K_ESCAPE);
+        }
+    } else {
+        keyMap.at(utl::KeyFlag::K_ESCAPE) = keyState.at(utl::KeyFlag::K_ESCAPE);
     }
+
+    // resuming
+    if (!keyMap.at(utl::KeyFlag::K_ENTER)) {
+        if (keyState.at(utl::KeyFlag::K_ENTER)) {
+            isPaused = false;
+            keyMap.at(utl::KeyFlag::K_ENTER) =
+                keyState.at(utl::KeyFlag::K_ENTER);
+        }
+    } else {
+        keyMap.at(utl::KeyFlag::K_ENTER) = keyState.at(utl::KeyFlag::K_ENTER);
+    }
+
+    if (isPaused)
+        return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 
     // holding
     if (!keyMap.at(utl::KeyFlag::K_C) && !keyMap.at(utl::KeyFlag::K_LSHIFT)) {
@@ -177,11 +192,14 @@ TetrisGame::handle_input(double, double,
 
 std::string TetrisGame::update(double t, double dt)
 {
-    if (!running)
+    if (!isRunning)
         return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 
     if (upcomingShapes_.size() < constants::shapeQueueMin)
         fillShapeQueue();
+
+    if (isPaused)
+        return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 
     if (!canRotate) {
         rotateTimer += dt;
@@ -230,6 +248,8 @@ void TetrisGame::render(double, double)
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }
+    if (isPaused)
+        pauseText.render(renderer());
     utl::presentRenderer(renderer());
 }
 
@@ -313,7 +333,7 @@ void TetrisGame::notifyScored(int linesCleared)
 
 void TetrisGame::notifyLoss()
 {
-    running = false;
+    isRunning = false;
 }
 
 Grid& TetrisGame::grid()

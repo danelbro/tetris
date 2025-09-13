@@ -4,6 +4,7 @@
 #pragma once
 
 #include "GridPoint.h"
+#include "colours.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -53,13 +54,14 @@ public:
 private:
     utl::Stage* stage_{nullptr};
     std::string type_{flags::ENTITIES_MAP.at(flags::ENTITIES::CELL)};
-    utl::Rect rect_{};
     utl::Vec2d pos_{};
-    utl::Size size_{};
+    utl::Size size_{constants::cellWidth, constants::cellHeight};
+    utl::Rect rect_{{static_cast<float>(pos_.x), static_cast<float>(pos_.y),
+                     static_cast<float>(size_.w), static_cast<float>(size_.h)}};
     std::array<utl::Rect, constants::gridWalls> borders_{};
-    utl::Colour col{};
-    utl::Colour borderCol{};
+    utl::Colour col{colours::gridBG};
+    utl::Colour borderCol{colours::gridBG};
     bool renderMe_{false};
-    GridPoint coord_{};
+    GridPoint coord_{0,0};
     bool isOpen_{true};
 };

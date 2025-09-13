@@ -33,7 +33,6 @@ Grid::Grid(TetrisGame* owner, const utl::Colour& colour)
     placeBGCells();
     enableRenderBGCells();
 }
-
 void Grid::update(double, double)
 {
     numLinesClearedThisFrame = 0;
@@ -185,12 +184,11 @@ void Grid::bakeActiveTetromino(const Tetromino& tetromino)
     }
 }
 
-
 void Grid::enableRenderBGCells()
 {
-    for (size_t i{0}; i < grid_.size(); ++i) {
-        grid_[i].setColour(colours::gridBG);
-        grid_[i].makeRender();
+    for (auto& cell : grid_) {
+        cell.setColour(colours::gridBG);
+        cell.makeRender();
     }
 }
 

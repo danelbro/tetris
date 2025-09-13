@@ -142,14 +142,8 @@ static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
                            const Grid& grid, const GridPoint& topLeft);
 static bool test(TestPacket& testPacket, int testNo);
 
-Tetromino::Tetromino(TetrisGame* owner, const GridPoint& grid_point,
-                     const TetrominoShape& tetrominoShape,
-                     const utl::Colour& colour)
-    : utl::Entity{}, type_{flags::ENTITIES_MAP.at(flags::ENTITIES::TETROMINO)},
-      pos_{}, size_{}, owner_{owner}, tetrominoShape_{tetrominoShape},
-      topLeft_{grid_point}, shape_{}, col_{colour},
-      tickTime_{constants::initialTickTime}, timeSinceTick{0.0},
-      currentRotation_{0}
+Tetromino::Tetromino(TetrisGame* owner)
+    : utl::Entity{}, owner_{owner}
 {
     init();
 }
@@ -304,8 +298,10 @@ void Tetromino::readShape()
         tetrominoShape_.at(static_cast<size_t>(currentRotation_))};
 
     for (const auto& cell : current_shape) {
-        shape_[static_cast<size_t>(cell.x + cell.y * constants::shapeWidth)]
-            .makeRender();
+        auto& activeCell = shape_[static_cast<size_t>(
+            cell.x + cell.y * constants::shapeWidth)];
+        activeCell.setColour(col_);
+        activeCell.makeRender();
     }
 }
 

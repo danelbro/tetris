@@ -34,6 +34,7 @@ inline const std::filesystem::path instructionsFontPath{
     "data/Silkscreen-Regular.ttf"};
 inline constexpr int32_t titleFontSize{128};
 inline constexpr int32_t instructionsFontSize{48};
+inline constexpr int32_t pauseFontSize{192};
 
 inline constexpr int cellWidth{32};
 inline constexpr int cellHeight{32};
