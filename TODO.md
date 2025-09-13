@@ -8,7 +8,6 @@
   - [ ] T-spin and tetris display
   - [ ] Combos
 - [x] Scoreboard
-- [ ] Controls display
 - [x] Wall kicks
   - [x] Tetrominoes should be able to move left and right while rotating
 - [x] Hard drop/ghost tetromino
@@ -18,4 +17,4 @@
 - [ ] Highscores
 - [ ] Sound/music
 - [x] Cell borders
-- [ ] Pause
+- [x] Pause
