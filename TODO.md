@@ -5,7 +5,8 @@
   - [x] Better scoring?
   - [ ] Score soft drops
   - [x] Score hard drops
-  - [ ] Detect and score t-spins
+  - [ ] Detect t-spins
+  - [x] Score t-spins
   - [x] Combos
   - [x] Difficult clears, back-to-backs
   - [ ] T-spin, tetris, combo, and difficult display
