@@ -1,5 +1,7 @@
 #include "TetrisGame.h"
 
+#include "Grid.h"
+#include "Tetromino.h"
 #include "TetrominoShape.h"
 #include "colours.h"
 #include "constants.h"
@@ -18,8 +20,10 @@
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
+static int determineTSpinPoints(const Grid& grid,
+                                const Tetromino& activeTetromino)
 
-TetrisGame::TetrisGame(utl::Application& tetris_app)
+    TetrisGame::TetrisGame(utl::Application& tetris_app)
     : utl::Stage{}, app_{tetris_app},
       displayBoxTitleFont{utl::createFont(constants::displayBoxFontPath,
                                           constants::displayBoxFontSize)},
@@ -124,10 +128,12 @@ TetrisGame::handle_input(double, double,
             keyMap.at(utl::KeyFlag::K_C) = keyState.at(utl::KeyFlag::K_C);
             keyMap.at(utl::KeyFlag::K_LSHIFT) =
                 keyState.at(utl::KeyFlag::K_LSHIFT);
+            goto cleanup;
         }
     } else {
         keyMap.at(utl::KeyFlag::K_C) = keyState.at(utl::KeyFlag::K_C);
         keyMap.at(utl::KeyFlag::K_LSHIFT) = keyState.at(utl::KeyFlag::K_LSHIFT);
+        goto cleanup;
     }
 
     // rotating
@@ -135,10 +141,12 @@ TetrisGame::handle_input(double, double,
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
             activeTetro_.rotate(1);
             canRotate = false;
+            goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
             activeTetro_.rotate(-1);
             canRotate = false;
+            goto cleanup;
         }
     }
 
@@ -147,9 +155,11 @@ TetrisGame::handle_input(double, double,
         if (keyState.at(utl::KeyFlag::K_LEFT)) {
             activeTetro_.move(-1);
             canMove = false;
+            goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
             activeTetro_.move(1);
             canMove = false;
+            goto cleanup;
         }
     }
 
@@ -158,6 +168,7 @@ TetrisGame::handle_input(double, double,
         if (keyState.at(utl::KeyFlag::K_DOWN)) {
             activeTetro_.soft_drop();
             canSoftdrop = false;
+            goto cleanup;
         }
     }
 
@@ -166,12 +177,16 @@ TetrisGame::handle_input(double, double,
         if (keyState.at(utl::KeyFlag::K_SPACE)) {
             hardDrop();
             canHarddrop = false;
+            goto cleanup;
         }
     } else {
-        if (!keyState.at(utl::KeyFlag::K_SPACE))
+        if (!keyState.at(utl::KeyFlag::K_SPACE)) {
             canHarddrop = true;
+            goto cleanup;
+        }
     }
 
+cleanup:
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
@@ -286,7 +301,7 @@ void TetrisGame::notifyScored(int linesCleared)
     linesText.recentreX(nextDisplayBox);
 
     int linePoints{};
-    [[maybe_unused]] int tspinPoints{};
+    int tspinPoints{};
 
     switch (linesCleared) {
     case 1:
