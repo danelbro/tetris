@@ -351,10 +351,10 @@ void TetrisGame::notifyBaked(int linesCleared)
     int hardDropPoints{2 * hardDropCells};
 
     bool difficultClear{};
-    if (linesCleared != 4 && tSpinPoints == 0)
-        difficultClear= false;
-    else
+    if (linesCleared == 4 || tSpinPoints > 0)
         difficultClear = true;
+    else
+        difficultClear = false;
 
     tSpinPoints > 0 ? scoreThisFrame = tSpinPoints
                     : scoreThisFrame = linePoints;
