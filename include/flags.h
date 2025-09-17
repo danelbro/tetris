@@ -55,4 +55,15 @@ inline const std::unordered_map<std::string, STAGES> STAGES_STRING_MAP{
     {"END_SCREEN", STAGES::END_SCREEN},
     {"QUIT", STAGES::QUIT}};
 
+enum class MOVE
+{
+    PAUSE,
+    QUIT,
+    HOLD,
+    ROTATE,
+    MOVE,
+    SOFTDROP,
+    HARDDROP,
+};
+
 }  // namespace flags
