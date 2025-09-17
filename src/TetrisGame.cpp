@@ -121,7 +121,7 @@ TetrisGame::handle_input(double, double,
     if (!keyMap.at(utl::KeyFlag::K_ESCAPE)) {
         if (keyState.at(utl::KeyFlag::K_ESCAPE)) {
             if (isPaused)
-                return flags::STAGES_MAP.at(flags::STAGES::QUIT);
+                return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
             isPaused = true;
             keyMap.at(utl::KeyFlag::K_ESCAPE) =
                 keyState.at(utl::KeyFlag::K_ESCAPE);
