@@ -78,9 +78,9 @@ static utl::Colour shadeBorder(const utl::Colour& mainCol)
 {
     const double SHADE_FACTOR{0.1};
     utl::Colour borderCol{mainCol};
-    borderCol.r *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
-    borderCol.g *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
-    borderCol.b *= static_cast<uint8_t>(1.0 - SHADE_FACTOR);
+    borderCol.r = static_cast<uint8_t>(borderCol.r * (1.0 - SHADE_FACTOR));
+    borderCol.g = static_cast<uint8_t>(borderCol.g * (1.0 - SHADE_FACTOR));
+    borderCol.b = static_cast<uint8_t>(borderCol.b * (1.0 - SHADE_FACTOR));
 
     return borderCol;
 }

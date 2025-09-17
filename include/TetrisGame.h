@@ -63,7 +63,9 @@ private:
     GhostPiece ghostPiece{this};
 
     std::vector<std::unique_ptr<utl::Entity>> entities_{};
-    std::vector<TetrominoShape> possibleShapes_{};
+    std::array<TetrominoShape, constants::tetrominoes> possibleShapes_{
+        I_tetromino, O_tetromino, T_tetromino, J_tetromino,
+        L_tetromino, S_tetromino, Z_tetromino};
     std::queue<TetrominoShape> upcomingShapes_{};
     utl::RNG rng{};
     std::uniform_int_distribution<std::mt19937::result_type> tetroDist{};
@@ -72,7 +74,10 @@ private:
     int linesClearedThisLevel{0};
     int level{1};
 
-    utl::Font displayBoxTitleFont;
+    utl::Font displayBoxTitleFont{utl::createFont(
+        constants::displayBoxFontPath, constants::displayBoxFontSize)};
+    utl::Font pauseFont{
+        utl::createFont(constants::titleFontPath, constants::pauseFontSize)};
 
     DisplayBox heldDisplayBox{
         this, {constants::heldDisplayBoxPosX, constants::heldDisplayBoxPosY}};
@@ -88,9 +93,11 @@ private:
     double softdropTimer{0.0};
     bool canHarddrop{true};
 
-    bool running{true};
+    bool isRunning{true};
+    bool isPaused{false};
 
-    utl::TextObject scoreText{};
-    utl::TextObject levelText{};
-    utl::TextObject linesText{};
+    utl::TextObject scoreText;
+    utl::TextObject levelText;
+    utl::TextObject linesText;
+    utl::TextObject pauseText;
 };

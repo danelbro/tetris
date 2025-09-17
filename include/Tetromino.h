@@ -17,17 +17,16 @@ class TetrisGame;
 
 class Tetromino : public utl::Entity {
 public:
-    Tetromino(TetrisGame* owner, const GridPoint& grid_point = {0, 0},
-              const TetrominoShape& tetrominoShape = Z_tetromino,
-              const utl::Colour& = colours::Z_tetrominoCol);
+    Tetromino() = default;
+    Tetromino(TetrisGame* owner);
 
-    void update(double t, double dt) override final;
-    void render(utl::Renderer& renderer) override final;
-    const std::string& type() const override final;
-    const utl::Vec2d& pos() const override final;
-    const utl::Size& size() const override final;
-    utl::Stage& stage() override final;
-    void set_pos(const utl::Vec2d& new_pos) override final;
+    void update(double t, double dt) override;
+    void render(utl::Renderer& renderer) override;
+    const std::string& type() const override;
+    const utl::Vec2d& pos() const override;
+    const utl::Size& size() const override;
+    utl::Stage& stage() override;
+    void set_pos(const utl::Vec2d& new_pos) override;
 
     void reset(const TetrominoShape& newShape);
     void move(int dir);
@@ -51,16 +50,16 @@ private:
     void repositionInScreenSpace();
 
 private:
-    std::string type_;
-    utl::Vec2d pos_;
-    utl::Size size_;
-    TetrisGame* owner_;
+    TetrisGame* owner_{nullptr};
+    std::string type_{flags::ENTITIES_MAP.at(flags::ENTITIES::TETROMINO)};
+    utl::Vec2d pos_{0.0};
+    utl::Size size_{};
 
-    TetrominoShape tetrominoShape_;
-    GridPoint topLeft_;
-    std::vector<Cell> shape_;
-    utl::Colour col_;
-    double tickTime_;
-    double timeSinceTick;
-    size_t currentRotation_;
+    TetrominoShape tetrominoShape_{Z_tetromino};
+    GridPoint topLeft_{0, 0};
+    std::vector<Cell> shape_{};
+    utl::Colour col_{colours::Z_tetrominoCol};
+    double tickTime_{constants::initialTickTime};
+    double timeSinceTick{0.0};
+    size_t currentRotation_{0u};
 };

@@ -1,4 +1,10 @@
-add_executable(tetris)
+if(${CMAKE_BUILD_TYPE} STREQUAL "Release"
+   AND ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+	add_executable(${PROJECT_NAME} WIN32)
+else()
+	add_executable(${PROJECT_NAME})
+endif()
+
 target_sources(tetris PRIVATE
   "tetris.cpp"
   "Cell.cpp" "../include/Cell.h"
