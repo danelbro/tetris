@@ -344,8 +344,8 @@ void TetrisGame::notifyBaked(int linesCleared)
 
     int scoreThisFrame{0};
 
-    int linePoints{determineLineClearPoints(linesCleared)};
-    int tSpinPoints{determineTSpinPoints(*this, linesCleared)};
+    int linePoints{determineLineClearPoints(linesCleared) * level};
+    int tSpinPoints{determineTSpinPoints(*this, linesCleared) * level};
     int comboPoints{50 * comboCount * level};
     int softDropPoints{0};
     int hardDropPoints{2 * hardDropCells};
@@ -359,7 +359,6 @@ void TetrisGame::notifyBaked(int linesCleared)
     tSpinPoints > 0 ? scoreThisFrame = tSpinPoints
                     : scoreThisFrame = linePoints;
 
-    // for back-to-back
     if (difficultClear && difficultClearLastTime)
         scoreThisFrame = static_cast<int>(std::trunc(scoreThisFrame * 1.5));
 
