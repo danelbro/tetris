@@ -57,13 +57,12 @@ inline const std::unordered_map<std::string, STAGES> STAGES_STRING_MAP{
 
 enum class MOVE
 {
-    PAUSE,
-    QUIT,
-    HOLD,
     ROTATE,
     MOVE,
     SOFTDROP,
     HARDDROP,
+    NULLMOVE,
+    MOVES_TOTAL
 };
 
 }  // namespace flags

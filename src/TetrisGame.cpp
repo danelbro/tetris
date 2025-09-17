@@ -8,6 +8,7 @@
 #include "flags.h"
 
 #include <array>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utl_Application.hpp>
@@ -17,13 +18,21 @@
 #include <utl_TextObject.hpp>
 #include <utl_random.hpp>
 
+enum class TSpin
+{
+    NOSPIN,
+    MINI,
+    TSPIN
+};
+
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
-static int determineTSpinPoints(const Grid& grid,
-                                const Tetromino& activeTetromino)
+static int determineLineClearPoints(int linesCleared);
+static TSpin determineTspin(TetrisGame& game);
+static int determineTSpinPoints(TetrisGame& game, int linesCleared);
 
-    TetrisGame::TetrisGame(utl::Application& tetris_app)
+TetrisGame::TetrisGame(utl::Application& tetris_app)
     : utl::Stage{}, app_{tetris_app},
       scoreText{this, &displayBoxTitleFont, colours::titleText,
                 std::to_string(score)},
@@ -32,7 +41,7 @@ static int determineTSpinPoints(const Grid& grid,
       linesText{this, &displayBoxTitleFont, colours::titleText,
                 std::to_string(linesClearedTotal)},
       pauseText{this, &pauseFont, colours::titleText, std::string{"PAUSE"}}
-    {
+{
     entities_.reserve(0xFF);
 
     rng.rng().seed();
@@ -112,7 +121,7 @@ TetrisGame::handle_input(double, double,
     if (!keyMap.at(utl::KeyFlag::K_ESCAPE)) {
         if (keyState.at(utl::KeyFlag::K_ESCAPE)) {
             if (isPaused)
-                return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
+                return flags::STAGES_MAP.at(flags::STAGES::QUIT);
             isPaused = true;
             keyMap.at(utl::KeyFlag::K_ESCAPE) =
                 keyState.at(utl::KeyFlag::K_ESCAPE);
@@ -133,7 +142,7 @@ TetrisGame::handle_input(double, double,
     }
 
     if (isPaused)
-        return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
+        goto cleanup;
 
     // holding
     if (!keyMap.at(utl::KeyFlag::K_C) && !keyMap.at(utl::KeyFlag::K_LSHIFT)) {
@@ -155,11 +164,13 @@ TetrisGame::handle_input(double, double,
     if (canRotate) {
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
             activeTetro_.rotate(1);
+            lastMove_ = flags::MOVE::ROTATE;
             canRotate = false;
             goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
             activeTetro_.rotate(-1);
+            lastMove_ = flags::MOVE::ROTATE;
             canRotate = false;
             goto cleanup;
         }
@@ -169,10 +180,12 @@ TetrisGame::handle_input(double, double,
     if (canMove) {
         if (keyState.at(utl::KeyFlag::K_LEFT)) {
             activeTetro_.move(-1);
+            lastMove_ = flags::MOVE::MOVE;
             canMove = false;
             goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
             activeTetro_.move(1);
+            lastMove_ = flags::MOVE::MOVE;
             canMove = false;
             goto cleanup;
         }
@@ -182,6 +195,7 @@ TetrisGame::handle_input(double, double,
     if (canSoftdrop) {
         if (keyState.at(utl::KeyFlag::K_DOWN)) {
             activeTetro_.soft_drop();
+            lastMove_ = flags::MOVE::SOFTDROP;
             canSoftdrop = false;
             goto cleanup;
         }
@@ -300,6 +314,8 @@ void TetrisGame::holdTetro()
 
 void TetrisGame::hardDrop()
 {
+    lastMove_ = flags::MOVE::HARDDROP;
+    hardDropCells = ghostPiece.origin().y - activeTetro_.topLeft().y;
     activeTetro_.setTopLeft(ghostPiece.origin());
     grid_.notifyBlockedTetro(activeTetro_);
 }
@@ -309,41 +325,55 @@ void TetrisGame::resetActiveTetro()
     const TetrominoShape& newShape{upcomingShapes_.front()};
     upcomingShapes_.pop();
     nextDisplayBox.updateShape(upcomingShapes_.front());
+    lastMove_ = flags::MOVE::NULLMOVE;
 
     activeTetro_.reset(newShape);
 }
 
-void TetrisGame::notifyScored(int linesCleared)
+void TetrisGame::notifyBaked(int linesCleared)
 {
     linesClearedThisLevel += linesCleared;
     linesClearedTotal += linesCleared;
-    linesText.updateText(std::to_string(linesClearedTotal));
-    linesText.recentreX(nextDisplayBox);
-
-    int linePoints{};
-    int tspinPoints{};
-
-    switch (linesCleared) {
-    case 1:
-        linePoints = 100;
-        break;
-    case 2:
-        linePoints = 200;
-        break;
-    case 3:
-        linePoints = 500;
-        break;
-    case 4:
-        linePoints = 800;
-        break;
+    if (linesCleared >= 1) {
+        linesText.updateText(std::to_string(linesClearedTotal));
+        linesText.recentreX(nextDisplayBox);
+        ++comboCount;
+    } else {
+        comboCount = -1;
     }
 
-    int scoreThisFrame{linePoints * level};
+    int scoreThisFrame{0};
+
+    int linePoints{determineLineClearPoints(linesCleared)};
+    int tSpinPoints{determineTSpinPoints(*this, linesCleared)};
+    int comboPoints{50 * comboCount * level};
+    int softDropPoints{0};
+    int hardDropPoints{2 * hardDropCells};
+
+    bool difficultClear{};
+    if (linesCleared != 4 && tSpinPoints == 0)
+        difficultClear= false;
+    else
+        difficultClear = true;
+
+    tSpinPoints > 0 ? scoreThisFrame = tSpinPoints
+                    : scoreThisFrame = linePoints;
+
+    // for back-to-back
+    if (difficultClear && difficultClearLastTime)
+        scoreThisFrame = static_cast<int>(std::trunc(scoreThisFrame * 1.5));
+
+    if (linesCleared >= 1)
+        scoreThisFrame += softDropPoints + hardDropPoints + comboPoints;
+
     score += scoreThisFrame;
+
     scoreText.updateText(std::to_string(score));
     scoreText.recentreX(heldDisplayBox);
 
     changeLevel();
+    hardDropCells = 0;
+    difficultClearLastTime = difficultClear;
 }
 
 void TetrisGame::notifyLoss()
@@ -376,6 +406,11 @@ int TetrisGame::getLevel() const
     return level;
 }
 
+flags::MOVE TetrisGame::lastMove() const
+{
+    return lastMove_;
+}
+
 const TetrominoShape& TetrisGame::getRandomShape()
 {
     return possibleShapes_[tetroDist(rng.rng())];
@@ -404,4 +439,54 @@ void TetrisGame::changeLevel()
     activeTetro_.changeTickTime(1.0 - (0.0625 * level));
 
     linesClearedThisLevel -= constants::linesPerLevel;
+}
+
+int determineLineClearPoints(int linesCleared)
+{
+    switch (linesCleared) {
+    case 1:
+        return 100;
+    case 2:
+        return 200;
+    case 3:
+        return 500;
+    case 4:
+        return 800;
+    default:
+        return 0;
+    }
+}
+
+TSpin determineTspin(TetrisGame&)
+{
+    return TSpin::NOSPIN;
+}
+
+int determineTSpinPoints(TetrisGame& game, int linesCleared)
+{
+    if (game.activeTetro().shape() != T_tetromino
+        || game.lastMove() != flags::MOVE::ROTATE)
+        return 0;
+
+    TSpin tSpinType{determineTspin(game)};
+    int baseTSpinPoints{};
+    int tSpinPoints{};
+
+    switch (tSpinType) {
+    case TSpin::NOSPIN:
+        return 0;
+    case TSpin::MINI:
+        baseTSpinPoints = 100;
+        break;
+    case TSpin::TSPIN:
+        baseTSpinPoints = 400;
+        break;
+    }
+
+    tSpinPoints = baseTSpinPoints * (linesCleared + 1);
+
+    if (tSpinType == TSpin::MINI && linesCleared == 2)
+        tSpinPoints += 100;
+
+    return tSpinPoints;
 }

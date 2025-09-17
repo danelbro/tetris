@@ -42,7 +42,6 @@ TetrisApp::TetrisApp()
 TetrisApp::~TetrisApp()
 {
     utl::quit_sdl();
-    LOG("Quit SDL\n");
     LOG("Destroying TetrisApp\n");
 }
 

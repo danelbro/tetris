@@ -115,8 +115,9 @@ void Grid::notifyBlockedTetro(const Tetromino& tetromino)
     if (numLinesClearedThisFrame > 0) {
         clearLines(grid_, linesClearedThisFrame);
         applyGravity(grid_, linesClearedThisFrame);
-        owner_->notifyScored(numLinesClearedThisFrame);
     }
+
+    owner_->notifyBaked(numLinesClearedThisFrame);
 }
 
 void Grid::notifyLoss(const Tetromino& tetromino)

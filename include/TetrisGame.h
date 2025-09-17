@@ -41,7 +41,7 @@ public:
     void holdTetro();
     void hardDrop();
     void resetActiveTetro();
-    void notifyScored(int linesCleared);
+    void notifyBaked(int linesCleared);
     void notifyLoss();
 
     Grid& grid();
@@ -49,6 +49,7 @@ public:
     int getScore() const;
     int getLines() const;
     int getLevel() const;
+    flags::MOVE lastMove() const;
 
 private:
     const TetrominoShape& getRandomShape();
@@ -72,6 +73,8 @@ private:
     int score{0};
     int linesClearedTotal{0};
     int linesClearedThisLevel{0};
+    int comboCount{-1};
+    bool difficultClearLastTime{false};
     int level{1};
 
     utl::Font displayBoxTitleFont{utl::createFont(
@@ -92,6 +95,8 @@ private:
     bool canSoftdrop{true};
     double softdropTimer{0.0};
     bool canHarddrop{true};
+    int hardDropCells{0};
+    flags::MOVE lastMove_{flags::MOVE::NULLMOVE};
 
     bool isRunning{true};
     bool isPaused{false};

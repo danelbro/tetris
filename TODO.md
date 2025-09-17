@@ -3,10 +3,12 @@
 - [x] Line clearing & tetris
 - [x] Scoring
   - [x] Better scoring?
-  - [ ] Score drops
+  - [ ] Score soft drops
+  - [x] Score hard drops
   - [ ] Detect and score t-spins
-  - [ ] T-spin and tetris display
-  - [ ] Combos
+  - [x] Combos
+  - [x] Difficult clears, back-to-backs
+  - [ ] T-spin, tetris, combo, and difficult display
 - [x] Scoreboard
 - [x] Wall kicks
   - [x] Tetrominoes should be able to move left and right while rotating
