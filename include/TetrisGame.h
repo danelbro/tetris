@@ -69,7 +69,8 @@ private:
         L_tetromino, S_tetromino, Z_tetromino};
     std::queue<TetrominoShape> upcomingShapes_{};
     utl::RNG rng{};
-    std::uniform_int_distribution<std::mt19937::result_type> tetroDist{};
+    std::uniform_int_distribution<std::mt19937::result_type> tetroDist{
+        0, constants::tetrominoes - 1};
     int score{0};
     int linesClearedTotal{0};
     int linesClearedThisLevel{0};

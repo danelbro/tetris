@@ -44,10 +44,6 @@ TetrisGame::TetrisGame(utl::Application& tetris_app)
 {
     entities_.reserve(0xFF);
 
-    rng.rng().seed();
-    tetroDist = std::uniform_int_distribution<std::mt19937::result_type>{
-        0, constants::tetrominoes - 1};
-
     fillShapeQueue();
     nextDisplayBox.activate();
     resetActiveTetro();
@@ -412,7 +408,7 @@ flags::MOVE TetrisGame::lastMove() const
 
 const TetrominoShape& TetrisGame::getRandomShape()
 {
-    return possibleShapes_[tetroDist(rng.rng())];
+    return possibleShapes_[tetroDist(rng.rng)];
 }
 
 void TetrisGame::fillShapeQueue()
