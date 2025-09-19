@@ -108,7 +108,6 @@ void Grid::setCellOpen(const GridPoint& coord, bool open)
 void Grid::notifyBlockedTetro(const Tetromino& tetromino)
 {
     bakeActiveTetromino(tetromino);
-    owner_->resetActiveTetro();
 
     numLinesClearedThisFrame = countLinesToClear(grid_, linesClearedThisFrame);
 
@@ -118,6 +117,7 @@ void Grid::notifyBlockedTetro(const Tetromino& tetromino)
     }
 
     owner_->notifyBaked(numLinesClearedThisFrame);
+    owner_->resetActiveTetro();
 }
 
 void Grid::notifyLoss(const Tetromino& tetromino)

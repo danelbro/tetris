@@ -15,6 +15,8 @@ inline constexpr int shapeHeight{4};
 inline constexpr size_t minos{4};
 inline constexpr size_t rotations{4};
 inline constexpr size_t tetrominoes{7};
+inline constexpr size_t filledCornersForTSpin{3};
+inline constexpr int frontCornersForTSpin{2};
 inline constexpr int tests{5};
 inline constexpr int tetrisLines{4};
 

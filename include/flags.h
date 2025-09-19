@@ -65,4 +65,11 @@ enum class MOVE
     MOVES_TOTAL
 };
 
+enum class TSpin
+{
+    NOSPIN,
+    MINI,
+    TSPIN
+};
+
 }  // namespace flags

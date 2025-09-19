@@ -18,19 +18,9 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Vec2d.hpp>
 
-struct TestPacket {
-    TestPacket(TetrominoShape& newShape, Grid& newGrid, GridPoint& point,
-               size_t currentRot, size_t newRot)
-        : shape{newShape}, grid{newGrid}, topLeft{point},
-          currentRotation{currentRot}, newRotation{newRot}
-    {}
-
-    TetrominoShape shape;
-    Grid& grid;
-    GridPoint topLeft;
-    size_t currentRotation;
-    size_t newRotation;
-};
+// local constants
+static const std::array<GridPoint, 4> T_Corners{
+    {{0, 0}, {2, 0}, {2, 2}, {0, 2}}};
 
 // clang-format off
 const std::unordered_map<std::string, GridPoint> testDB
@@ -137,26 +127,65 @@ const std::unordered_map<std::string, GridPoint> testDB
 };
 // clang-format on
 
+// structs and enums
+enum class ORIENTATION
+{
+    VERTICAL,
+    HORIZONTAL,
+};
+
+struct TestPacket {
+    TestPacket(TetrominoShape& newShape, Grid& newGrid, GridPoint& point,
+               size_t currentRot, size_t newRot)
+        : shape{newShape}, grid{newGrid}, topLeft{point},
+          currentRotation{currentRot}, newRotation{newRot}
+    {}
+
+    TetrominoShape shape;
+    Grid& grid;
+    GridPoint topLeft;
+    size_t currentRotation;
+    size_t newRotation;
+};
+
+struct Orientation {
+    ORIENTATION orientation{};
+    int backRow{-1};
+    int frontRow{-1};
+    int backCol{-1};
+    int frontCol{-1};
+};
+
+struct FilledCornerPositions {
+    int backCorners{0};
+    int frontCorners{0};
+};
+
+//declarations of static helper functions
 static const utl::Colour& determineColour(const TetrominoShape&);
 static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
                            const Grid& grid, const GridPoint& topLeft);
 static bool test(TestPacket& testPacket, int testNo);
+static std::vector<GridPoint> countFilledCorners(const GridPoint& origin,
+                                                 const Grid& grid);
+static Orientation determineOrientation(size_t rotation);
+static FilledCornerPositions
+determinePositionOfFilledCorners(const Orientation& orientationPack,
+                                 const std::vector<GridPoint>& filledCorners);
 
+// member functions
 Tetromino::Tetromino(TetrisGame* owner)
     : utl::Entity{}, owner_{owner}
 {
     init();
 }
 
-void Tetromino::update(double, double dt)
+void Tetromino::update(double, double)
 {
     readShape();
 
-    timeSinceTick += dt;
-    if (timeSinceTick >= tickTime_) {
-        timeSinceTick = 0.0;
-        repositionInGridSpace(0, 1);
-    }
+    repositionInGridSpace(0, dropThisTick);
+    dropThisTick = 0;
 }
 
 void Tetromino::render(utl::Renderer& renderer)
@@ -240,14 +269,14 @@ void Tetromino::rotate(int dir)
     }
 }
 
+void Tetromino::tick_down()
+{
+    dropThisTick = 1;
+}
+
 void Tetromino::soft_drop()
 {
     repositionInGridSpace(0, 1);
-}
-
-void Tetromino::changeTickTime(double newTickTime)
-{
-    tickTime_ = newTickTime;
 }
 
 void Tetromino::setTopLeft(const GridPoint& point)
@@ -275,9 +304,28 @@ const GridPoint& Tetromino::topLeft() const
     return topLeft_;
 }
 
-const double& Tetromino::tickTime() const
+const flags::TSpin Tetromino::checkTSpin() const
 {
-    return tickTime_;
+    if (tetrominoShape_ != T_tetromino)
+        return flags::TSpin::NOSPIN;
+
+    std::vector<GridPoint> filledCorners{
+        countFilledCorners(topLeft_, owner_->grid())};
+
+    if (filledCorners.size() < constants::filledCornersForTSpin)
+        return flags::TSpin::NOSPIN;
+
+    Orientation orientation{determineOrientation(currentRotation_)};
+
+    FilledCornerPositions positions{
+        determinePositionOfFilledCorners(orientation, filledCorners)};
+
+    LOGF("TSpin! Front corners: %d\n", positions.frontCorners);
+
+    if (positions.frontCorners == constants::frontCornersForTSpin)
+        return flags::TSpin::TSPIN;
+    else
+        return flags::TSpin::MINI;
 }
 
 void Tetromino::init()
@@ -335,6 +383,7 @@ void Tetromino::repositionInScreenSpace()
     }
 }
 
+// static helper functions
 static const utl::Colour& determineColour(const TetrominoShape& shape)
 {
     switch (shape.id) {
@@ -403,4 +452,77 @@ static bool test(TestPacket& tp, int testNo)
     }
 
     return false;
+}
+
+static std::vector<GridPoint> countFilledCorners(const GridPoint& origin,
+                                                 const Grid& grid)
+{
+    std::vector<GridPoint> filledCorners{};
+    filledCorners.reserve(3);
+
+    for (const auto& corner : T_Corners) {
+        int x{origin.x + corner.x};
+        int y{origin.y + corner.y};
+        if (x >= constants::gridWidth || x < 0 || y >= constants::gridHeight
+            || y < 0 || !grid.get({x, y}).isOpen()) {
+            filledCorners.emplace_back(corner);
+        }
+    }
+
+    return filledCorners;
+}
+
+static Orientation determineOrientation(size_t rotation)
+{
+    Orientation op{};
+
+    switch (rotation) {
+    case 0:
+        op.orientation = ORIENTATION::HORIZONTAL;
+        op.backRow = 2;
+        op.frontRow = 0;
+        break;
+    case 2:
+        op.orientation = ORIENTATION::HORIZONTAL;
+        op.backRow = 0;
+        op.frontRow = 2;
+        break;
+    case 1:
+        op.orientation = ORIENTATION::VERTICAL;
+        op.backCol = 0;
+        op.frontCol = 2;
+        break;
+    case 3:
+        op.orientation = ORIENTATION::VERTICAL;
+        op.backCol = 2;
+        op.frontCol = 2;
+        break;
+    }
+
+    return op;
+}
+
+static FilledCornerPositions
+determinePositionOfFilledCorners(const Orientation& orientationPack,
+                                 const std::vector<GridPoint>& filledCorners)
+{
+    FilledCornerPositions filledCornerPositions{};
+
+    if (orientationPack.orientation == ORIENTATION::HORIZONTAL) {
+        for (const auto& corner : filledCorners) {
+            if (corner.y == orientationPack.backRow)
+                filledCornerPositions.backCorners++;
+            if (corner.y == orientationPack.frontRow)
+                filledCornerPositions.frontCorners++;
+        }
+    } else if (orientationPack.orientation == ORIENTATION::VERTICAL) {
+        for (const auto& corner : filledCorners) {
+            if (corner.x == orientationPack.backCol)
+                filledCornerPositions.backCorners++;
+            if (corner.x == orientationPack.frontCol)
+                filledCornerPositions.frontCorners++;
+        }
+    }
+
+    return filledCornerPositions;
 }

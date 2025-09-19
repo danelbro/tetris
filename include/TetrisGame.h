@@ -89,6 +89,8 @@ private:
         this, {constants::nextDisplayBoxPosX, constants::nextDisplayBoxPosY}};
 
     std::unordered_map<utl::KeyFlag, bool> keyMap{};
+    double timeSinceTick{0.0};
+    double tickTime_{constants::initialTickTime};
     bool canRotate{true};
     double rotateTimer{0.0};
     bool canMove{true};

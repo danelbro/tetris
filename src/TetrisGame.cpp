@@ -18,18 +18,11 @@
 #include <utl_TextObject.hpp>
 #include <utl_random.hpp>
 
-enum class TSpin
-{
-    NOSPIN,
-    MINI,
-    TSPIN
-};
-
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
 static int determineLineClearPoints(int linesCleared);
-static TSpin determineTspin(TetrisGame& game);
+static flags::TSpin determineTspin(TetrisGame& game);
 static int determineTSpinPoints(TetrisGame& game, int linesCleared);
 
 TetrisGame::TetrisGame(utl::Application& tetris_app)
@@ -220,11 +213,11 @@ std::string TetrisGame::update(double t, double dt)
     if (!isRunning)
         return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 
-    if (upcomingShapes_.size() < constants::shapeQueueMin)
-        fillShapeQueue();
-
     if (isPaused)
         return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
+
+    if (upcomingShapes_.size() < constants::shapeQueueMin)
+        fillShapeQueue();
 
     if (!canRotate) {
         rotateTimer += dt;
@@ -248,6 +241,12 @@ std::string TetrisGame::update(double t, double dt)
             canSoftdrop = true;
             softdropTimer = 0.0;
         }
+    }
+
+    timeSinceTick += dt;
+    if (timeSinceTick >= tickTime_) {
+        timeSinceTick = 0.0;
+        activeTetro_.tick_down();
     }
 
     grid_.update(t, dt);
@@ -431,7 +430,7 @@ void TetrisGame::changeLevel()
     levelText.updateText(std::to_string(level));
     levelText.recentreX(nextDisplayBox);
 
-    activeTetro_.changeTickTime(1.0 - (0.0625 * level));
+    tickTime_ = 1.0 - (0.0625 * level);
 
     linesClearedThisLevel -= constants::linesPerLevel;
 }
@@ -452,35 +451,30 @@ int determineLineClearPoints(int linesCleared)
     }
 }
 
-TSpin determineTspin(TetrisGame&)
-{
-    return TSpin::NOSPIN;
-}
-
 int determineTSpinPoints(TetrisGame& game, int linesCleared)
 {
     if (game.activeTetro().shape() != T_tetromino
         || game.lastMove() != flags::MOVE::ROTATE)
         return 0;
 
-    TSpin tSpinType{determineTspin(game)};
+    flags::TSpin tSpinType{game.activeTetro().checkTSpin()};
     int baseTSpinPoints{};
     int tSpinPoints{};
 
     switch (tSpinType) {
-    case TSpin::NOSPIN:
+    case flags::TSpin::NOSPIN:
         return 0;
-    case TSpin::MINI:
+    case flags::TSpin::MINI :
         baseTSpinPoints = 100;
         break;
-    case TSpin::TSPIN:
+    case flags::TSpin::TSPIN :
         baseTSpinPoints = 400;
         break;
     }
 
     tSpinPoints = baseTSpinPoints * (linesCleared + 1);
 
-    if (tSpinType == TSpin::MINI && linesCleared == 2)
+    if (tSpinType == flags::TSpin::MINI && linesCleared == 2)
         tSpinPoints += 100;
 
     return tSpinPoints;

@@ -7,6 +7,7 @@
 #include "Cell.h"
 #include "TetrominoShape.h"
 #include "colours.h"
+#include "flags.h"
 
 #include <string>
 #include <utl_Entity.hpp>
@@ -31,8 +32,8 @@ public:
     void reset(const TetrominoShape& newShape);
     void move(int dir);
     void rotate(int dir);
+    void tick_down();
     void soft_drop();
-    void changeTickTime(double newTickTime);
     void setTopLeft(const GridPoint& point);
 
     const utl::Colour& colour() const;
@@ -40,7 +41,7 @@ public:
     const TetrominoShape& shape() const;
     const size_t& currentRotation() const;
     const GridPoint& topLeft() const;
-    const double& tickTime() const;
+    const flags::TSpin checkTSpin() const;
 
 private:
     void init();
@@ -59,7 +60,6 @@ private:
     GridPoint topLeft_{0, 0};
     std::vector<Cell> shape_{};
     utl::Colour col_{colours::Z_tetrominoCol};
-    double tickTime_{constants::initialTickTime};
-    double timeSinceTick{0.0};
     size_t currentRotation_{0u};
+    int dropThisTick{0};
 };
