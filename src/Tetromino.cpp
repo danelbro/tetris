@@ -304,7 +304,7 @@ const GridPoint& Tetromino::topLeft() const
     return topLeft_;
 }
 
-const flags::TSpin Tetromino::checkTSpin() const
+flags::TSpin Tetromino::checkTSpin() const
 {
     if (tetrominoShape_ != T_tetromino)
         return flags::TSpin::NOSPIN;

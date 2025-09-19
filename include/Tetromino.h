@@ -41,7 +41,7 @@ public:
     const TetrominoShape& shape() const;
     const size_t& currentRotation() const;
     const GridPoint& topLeft() const;
-    const flags::TSpin checkTSpin() const;
+    flags::TSpin checkTSpin() const;
 
 private:
     void init();

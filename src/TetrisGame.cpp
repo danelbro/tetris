@@ -22,7 +22,6 @@ static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
 static int determineLineClearPoints(int linesCleared);
-static flags::TSpin determineTspin(TetrisGame& game);
 static int determineTSpinPoints(TetrisGame& game, int linesCleared);
 
 TetrisGame::TetrisGame(utl::Application& tetris_app)
