@@ -108,15 +108,13 @@ void Grid::setCellOpen(const GridPoint& coord, bool open)
 void Grid::notifyBlockedTetro(const Tetromino& tetromino)
 {
     bakeActiveTetromino(tetromino);
-
     numLinesClearedThisFrame = countLinesToClear(grid_, linesClearedThisFrame);
+    owner_->notifyBaked(numLinesClearedThisFrame);
 
     if (numLinesClearedThisFrame > 0) {
         clearLines(grid_, linesClearedThisFrame);
         applyGravity(grid_, linesClearedThisFrame);
     }
-
-    owner_->notifyBaked(numLinesClearedThisFrame);
     owner_->resetActiveTetro();
 }
 
