@@ -458,7 +458,7 @@ static std::vector<GridPoint> countFilledCorners(const GridPoint& origin,
                                                  const Grid& grid)
 {
     std::vector<GridPoint> filledCorners{};
-    filledCorners.reserve(3);
+    filledCorners.reserve(constants::filledCornersForTSpin);
 
     for (const auto& corner : T_Corners) {
         int x{origin.x + corner.x};
