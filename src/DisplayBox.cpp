@@ -29,7 +29,7 @@ DisplayBox::DisplayBox(TetrisGame* owner, utl::Vec2d pos)
     deactivate();
 }
 
-void DisplayBox::update(double, double) {}
+void DisplayBox::update(std::chrono::milliseconds, std::chrono::milliseconds) {}
 
 void DisplayBox::render(utl::Renderer& renderer)
 {
@@ -58,7 +58,8 @@ const utl::Size& DisplayBox::size() const
 
 utl::Stage& DisplayBox::stage()
 {
-    if (!owner_) throw std::runtime_error("DisplayBox has no owner!");
+    if (!owner_)
+        throw std::runtime_error("DisplayBox has no owner!");
     return *owner_;
 }
 

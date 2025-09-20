@@ -9,6 +9,7 @@
 #include "flags.h"
 
 #include <array>
+#include <chrono>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -23,13 +24,14 @@ public:
     Cell(utl::Stage* stage, const utl::Colour& colour, const GridPoint& coord,
          const utl::RectDimensions& rect);
 
-    void update(double t, double dt) override final;
-    void render(utl::Renderer& renderer) override final;
-    const std::string& type() const override final;
-    const utl::Vec2d& pos() const override final;
-    const utl::Size& size() const override final;
-    utl::Stage& stage() override final;
-    void set_pos(const utl::Vec2d& newPos) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override;
+    void render(utl::Renderer& renderer) override;
+    const std::string& type() const override;
+    const utl::Vec2d& pos() const override;
+    const utl::Size& size() const override;
+    utl::Stage& stage() override;
+    void set_pos(const utl::Vec2d& newPos) override;
 
     void update_rect(const utl::RectDimensions& rect);
 
@@ -62,6 +64,6 @@ private:
     utl::Colour col{colours::gridBG};
     utl::Colour borderCol{colours::gridBG};
     bool renderMe_{false};
-    GridPoint coord_{0,0};
+    GridPoint coord_{0, 0};
     bool isOpen_{true};
 };

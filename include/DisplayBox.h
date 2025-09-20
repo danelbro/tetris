@@ -4,6 +4,7 @@
 #include "DisplayCell.h"
 #include "TetrominoShape.h"
 
+#include <chrono>
 #include <string>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -18,7 +19,8 @@ public:
     DisplayBox(TetrisGame* owner);
     DisplayBox(TetrisGame* owner, utl::Vec2d pos);
 
-    void update(double t, double dt) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
     void render(utl::Renderer& renderer) override final;
     const std::string& type() const override final;
     const utl::Vec2d& pos() const override final;

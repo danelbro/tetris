@@ -7,6 +7,7 @@
 #include "TetrominoShape.h"
 #include "colours.h"
 
+#include <chrono>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -20,13 +21,14 @@ class GhostPiece : public utl::Entity {
 public:
     GhostPiece(TetrisGame* owner);
 
-    void update(double t, double dt) override final;
-    void render(utl::Renderer& renderer) override final;
-    const std::string& type() const override final;
-    const utl::Vec2d& pos() const override final;
-    const utl::Size& size() const override final;
-    utl::Stage& stage() override final;
-    void set_pos(const utl::Vec2d& pos) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override;
+    void render(utl::Renderer& renderer) override;
+    const std::string& type() const override;
+    const utl::Vec2d& pos() const override;
+    const utl::Size& size() const override;
+    utl::Stage& stage() override;
+    void set_pos(const utl::Vec2d& pos) override;
 
     const GridPoint& origin() const;
 

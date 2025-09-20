@@ -5,6 +5,7 @@
 #include "InertGrid.h"
 #include "flags.h"
 
+#include <chrono>
 #include <string>
 #include <utl_Box.hpp>
 #include <utl_SDLInterface.hpp>
@@ -21,14 +22,16 @@ struct ScoresPacket {
 
 class EndScreen : public utl::Stage {
 public:
-    EndScreen(utl::Application& tetrisApp, const Grid& grid,
+    EndScreen(utl::Application& tetrisApp, Grid& grid,
               const ScoresPacket& scoresPacket);
 
     std::string handle_input(
-        double t, double dt,
+        std::chrono::milliseconds t, std::chrono::milliseconds dt,
         std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override final;
-    std::string update(double t, double dt) override final;
-    void render(double t, double dt) override final;
+    std::string update(std::chrono::milliseconds t,
+                       std::chrono::milliseconds dt) override final;
+    void render(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
 
     utl::Application& app() override final;
     utl::Box& screen() override final;

@@ -3,6 +3,7 @@
 #include "constants.h"
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <stdexcept>
 #include <utl_Box.hpp>
@@ -28,7 +29,7 @@ Cell::Cell(utl::Stage* owner, const utl::Colour& colour, const GridPoint& coord,
       borderCol{shadeBorder(colour)}, coord_{coord}
 {}
 
-void Cell::update(double, double) {}
+void Cell::update(std::chrono::milliseconds, std::chrono::milliseconds) {}
 
 void Cell::render(utl::Renderer& renderer)
 {

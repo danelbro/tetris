@@ -17,14 +17,14 @@ static utl::Colour addTransparency(const utl::Colour& colour);
 GhostPiece::GhostPiece(TetrisGame* owner)
     : utl::Entity{}, owner_{owner},
       colour_{addTransparency(owner_->activeTetro().colour())},
-      origin_{owner_->activeTetro().topLeft()}, shape_{},
+      origin_{owner_->activeTetro().origin()}, shape_{},
       currentShape_{owner_->activeTetro().shape()},
       currentRotation_{owner_->activeTetro().currentRotation()}
 {
     init();
 }
 
-void GhostPiece::update(double, double)
+void GhostPiece::update(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     currentShape_ = owner_->activeTetro().shape();
     currentRotation_ = owner_->activeTetro().currentRotation();
@@ -106,9 +106,9 @@ void GhostPiece::readShape()
 
 void GhostPiece::repositionInGridSpace()
 {
-    origin_.x = owner_->activeTetro().topLeft().x;
+    origin_.x = owner_->activeTetro().origin().x;
 
-    int y{owner_->activeTetro().topLeft().y};
+    int y{owner_->activeTetro().origin().y};
     for (; y <= constants::gridHeight; ++y) {
         for (const GridPoint& cell : currentShape_.at(currentRotation_)) {
             GridPoint test{origin_.x + cell.x, y + cell.y};
@@ -123,9 +123,10 @@ void GhostPiece::repositionInGridSpace()
         continue;
     }
     // we are at maximum depth
+
 shapeBlocked:
-    origin_.y =
-        y - 1;  //  we want the shape to be in the last open space we found
+    //  we want the shape to be in the last open space we found
+    origin_.y = y - 1;
 }
 
 void GhostPiece::repositionInScreenSpace()

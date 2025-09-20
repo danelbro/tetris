@@ -33,7 +33,7 @@ Grid::Grid(TetrisGame* owner, const utl::Colour& colour)
     placeBGCells();
     enableRenderBGCells();
 }
-void Grid::update(double, double)
+void Grid::update(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     numLinesClearedThisFrame = 0;
     linesClearedThisFrame.clear();
@@ -80,7 +80,7 @@ void Grid::set_pos(const utl::Vec2d& new_pos)
     placeWalls();
 }
 
-const Cell& Grid::get(const GridPoint& coord) const
+Cell& Grid::get(const GridPoint& coord)
 {
     if (coord.x < 0 || coord.y < 0)
         throw std::runtime_error("overflow");
@@ -132,20 +132,22 @@ void Grid::placeWalls()
             // side walls
             rect.w = constants::gridWallThickness;
             rect.h = (constants::gridWallThickness * 2)
-                + (constants::cellHeight * constants::gridHeight);
+                     + (constants::cellHeight * constants::gridHeight);
             rect.x = static_cast<float>(pos().x)
-                + (static_cast<float>(i)
-                   * (constants::cellWidth * constants::gridWidth) / 2.0f)
-                + (static_cast<float>(i) * (constants::gridWallThickness / 2.0f));
+                     + (static_cast<float>(i)
+                        * (constants::cellWidth * constants::gridWidth) / 2.0f)
+                     + (static_cast<float>(i)
+                        * (constants::gridWallThickness / 2.0f));
             rect.y = static_cast<float>(pos().y);
         } else {
             // top and bottom
             rect.w = (constants::gridWallThickness * 2.0f)
-                + (constants::cellWidth * constants::gridWidth);
+                     + (constants::cellWidth * constants::gridWidth);
             rect.h = constants::gridWallThickness;
 
             rect.x = static_cast<float>(pos().x);
-            rect.y = static_cast<float>(pos().y)
+            rect.y =
+                static_cast<float>(pos().y)
                 + ((static_cast<float>(i) - 1.0f)
                    * (constants::cellHeight * (constants::gridHeight / 2.0f)))
                 + (static_cast<float>(i) - 1.0f)
@@ -175,9 +177,7 @@ void Grid::bakeActiveTetromino(const Tetromino& tetromino)
 
     for (const GridPoint& cell :
          tetromino.shape().at(tetromino.currentRotation())) {
-        Cell& gridCell{grid_[static_cast<size_t>(
-            (cell.x + tetromino.topLeft().x)
-            + (cell.y + tetromino.topLeft().y) * constants::gridWidth)]};
+        Cell& gridCell{get(tetromino.origin() + cell)};
         gridCell.setColour(newColour);
         gridCell.close();
     }
@@ -251,4 +251,3 @@ static void applyGravity(std::vector<Cell>& grid,
         }
     }
 }
-

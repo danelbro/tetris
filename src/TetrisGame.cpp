@@ -8,6 +8,7 @@
 #include "flags.h"
 
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -95,7 +96,7 @@ TetrisGame::TetrisGame(utl::Application& tetris_app)
 }
 
 std::string
-TetrisGame::handle_input(double, double,
+TetrisGame::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
                          std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
     utl::process_input(screen(), app_.window().ID(), keyState);
@@ -151,13 +152,13 @@ TetrisGame::handle_input(double, double,
     // rotating
     if (canRotate) {
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
-            activeTetro_.rotate(1);
+            activeTetro_.rotate(flags::ROTATION::CLOCKWISE);
             lastMove_ = flags::MOVE::ROTATE;
             canRotate = false;
             goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
-            activeTetro_.rotate(-1);
+            activeTetro_.rotate(flags::ROTATION::ANTICLOCKWISE);
             lastMove_ = flags::MOVE::ROTATE;
             canRotate = false;
             goto cleanup;
@@ -167,12 +168,12 @@ TetrisGame::handle_input(double, double,
     // moving
     if (canMove) {
         if (keyState.at(utl::KeyFlag::K_LEFT)) {
-            activeTetro_.move(-1);
+            activeTetro_.move({-1, 0});
             lastMove_ = flags::MOVE::MOVE;
             canMove = false;
             goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
-            activeTetro_.move(1);
+            activeTetro_.move({1, 0});
             lastMove_ = flags::MOVE::MOVE;
             canMove = false;
             goto cleanup;
@@ -183,6 +184,7 @@ TetrisGame::handle_input(double, double,
     if (canSoftdrop) {
         if (keyState.at(utl::KeyFlag::K_DOWN)) {
             activeTetro_.soft_drop();
+            addToScore(1);
             lastMove_ = flags::MOVE::SOFTDROP;
             canSoftdrop = false;
             goto cleanup;
@@ -207,8 +209,10 @@ cleanup:
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
-std::string TetrisGame::update(double t, double dt)
+std::string TetrisGame::update(std::chrono::milliseconds t,
+                               std::chrono::milliseconds dt)
 {
+    using namespace std::chrono_literals;
     if (!isRunning)
         return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 
@@ -222,7 +226,7 @@ std::string TetrisGame::update(double t, double dt)
         rotateTimer += dt;
         if (rotateTimer >= constants::rotateTimerMax) {
             canRotate = true;
-            rotateTimer = 0.0;
+            rotateTimer = 0ms;
         }
     }
 
@@ -230,7 +234,7 @@ std::string TetrisGame::update(double t, double dt)
         moveTimer += dt;
         if (moveTimer >= constants::moveTimerMax) {
             canMove = true;
-            moveTimer = 0.0;
+            moveTimer = 0ms;
         }
     }
 
@@ -238,13 +242,13 @@ std::string TetrisGame::update(double t, double dt)
         softdropTimer += dt;
         if (softdropTimer >= constants::softdropTimerMax) {
             canSoftdrop = true;
-            softdropTimer = 0.0;
+            softdropTimer = 0ms;
         }
     }
 
     timeSinceTick += dt;
     if (timeSinceTick >= tickTime_) {
-        timeSinceTick = 0.0;
+        timeSinceTick = 0ms;
         activeTetro_.tick_down();
     }
 
@@ -257,7 +261,7 @@ std::string TetrisGame::update(double t, double dt)
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
-void TetrisGame::render(double, double)
+void TetrisGame::render(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     utl::clearScreen(renderer());
     heldDisplayBox.render(renderer());
@@ -309,7 +313,7 @@ void TetrisGame::holdTetro()
 void TetrisGame::hardDrop()
 {
     lastMove_ = flags::MOVE::HARDDROP;
-    hardDropCells = ghostPiece.origin().y - activeTetro_.topLeft().y;
+    hardDropCells = ghostPiece.origin().y - activeTetro_.origin().y;
     activeTetro_.setTopLeft(ghostPiece.origin());
     grid_.notifyBlockedTetro(activeTetro_);
 }
@@ -340,12 +344,11 @@ void TetrisGame::notifyBaked(int linesCleared)
 
     int linePoints{determineLineClearPoints(linesCleared) * level};
     int tSpinPoints{determineTSpinPoints(*this, linesCleared) * level};
-    int comboPoints{50 * comboCount * level};
-    int softDropPoints{0};
-    int hardDropPoints{2 * hardDropCells};
+    int comboPoints{constants::baseComboPoints * comboCount * level};
+    int hardDropPoints{constants::pointsPerHardDropCell * hardDropCells};
 
     bool difficultClear{};
-    if (linesCleared == 4 || tSpinPoints > 0)
+    if (linesCleared == constants::tetrisLines || tSpinPoints > 0)
         difficultClear = true;
     else
         difficultClear = false;
@@ -356,17 +359,23 @@ void TetrisGame::notifyBaked(int linesCleared)
     if (difficultClear && difficultClearLastTime)
         scoreThisFrame = static_cast<int>(std::trunc(scoreThisFrame * 1.5));
 
-    if (linesCleared >= 1)
-        scoreThisFrame += softDropPoints + hardDropPoints + comboPoints;
+    if (linesCleared >= constants::singleLines)
+        scoreThisFrame += comboPoints;
 
-    score += scoreThisFrame;
+    scoreThisFrame += hardDropPoints;
 
-    scoreText.updateText(std::to_string(score));
-    scoreText.recentreX(heldDisplayBox);
+    addToScore(scoreThisFrame);
 
     changeLevel();
     hardDropCells = 0;
     difficultClearLastTime = difficultClear;
+}
+
+void TetrisGame::addToScore(int points)
+{
+    score += points;
+    scoreText.updateText(std::to_string(score));
+    scoreText.recentreX(heldDisplayBox);
 }
 
 void TetrisGame::notifyLoss()
@@ -429,7 +438,9 @@ void TetrisGame::changeLevel()
     levelText.updateText(std::to_string(level));
     levelText.recentreX(nextDisplayBox);
 
-    tickTime_ = 1.0 - (0.0625 * level);
+    using namespace std::chrono;
+    using namespace std::chrono_literals;
+    tickTime_ = duration_cast<milliseconds>(1000ms - (62.5ms * level));
 
     linesClearedThisLevel -= constants::linesPerLevel;
 }
@@ -437,14 +448,14 @@ void TetrisGame::changeLevel()
 int determineLineClearPoints(int linesCleared)
 {
     switch (linesCleared) {
-    case 1:
-        return 100;
-    case 2:
-        return 200;
-    case 3:
-        return 500;
-    case 4:
-        return 800;
+    case constants::singleLines:
+        return constants::singlePoints;
+    case constants::doubleLines:
+        return constants::doublePoints;
+    case constants::tripleLines:
+        return constants::triplePoints;
+    case constants::tetrisLines:
+        return constants::tetrisPoints;
     default:
         return 0;
     }
@@ -463,18 +474,20 @@ int determineTSpinPoints(TetrisGame& game, int linesCleared)
     switch (tSpinType) {
     case flags::TSpin::NOSPIN:
         return 0;
-    case flags::TSpin::MINI :
-        baseTSpinPoints = 100;
+    case flags::TSpin::MINI:
+        baseTSpinPoints = constants::miniTSpinBasePoints;
         break;
-    case flags::TSpin::TSPIN :
-        baseTSpinPoints = 400;
+    case flags::TSpin::TSPIN:
+        baseTSpinPoints = constants::TSpinBasePoints;
         break;
+    default:
+        return 0;
     }
 
     tSpinPoints = baseTSpinPoints * (linesCleared + 1);
 
-    if (tSpinType == flags::TSpin::MINI && linesCleared == 2)
-        tSpinPoints += 100;
+    if (tSpinType == flags::TSpin::MINI && linesCleared == constants::doubleLines)
+        tSpinPoints += constants::miniTSpinBasePoints;
 
     return tSpinPoints;
 }

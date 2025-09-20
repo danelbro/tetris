@@ -28,7 +28,8 @@ DisplayCell::DisplayCell(TetrisGame* owner, const DisplayBox& displayBox,
       borders_{createBorders({rect_.x(), rect_.y(), rect_.w(), rect_.h()})}
 {}
 
-void DisplayCell::update(double, double) {}
+void DisplayCell::update(std::chrono::milliseconds, std::chrono::milliseconds)
+{}
 
 void DisplayCell::render(utl::Renderer& renderer)
 {
@@ -59,7 +60,8 @@ const utl::Size& DisplayCell::size() const
 
 utl::Stage& DisplayCell::stage()
 {
-    if(!owner_) throw std::runtime_error("DisplayCell has no owner!");
+    if (!owner_)
+        throw std::runtime_error("DisplayCell has no owner!");
     return *owner_;
 }
 

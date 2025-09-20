@@ -10,6 +10,7 @@ target_sources(tetris PRIVATE
   "Cell.cpp" "../include/Cell.h"
   "DisplayBox.cpp" "../include/DisplayBox.h"
   "DisplayCell.cpp" "../include/DisplayCell.h"
+  "DissolveTextObject.cpp" "../include/DissolveTextObject.h"
   "EndScreen.cpp" "../include/EndScreen.h"
   "GhostPiece.cpp" "../include/GhostPiece.h"
   "Grid.cpp" "../include/Grid.h"
@@ -18,7 +19,7 @@ target_sources(tetris PRIVATE
   "TetrisGame.cpp" "../include/TetrisGame.h"
   "Tetromino.cpp" "../include/Tetromino.h"
   "TitleScreen.cpp" "../include/TitleScreen.h"
-  "../include/GridPoint.h"
+  "GridPoint.cpp" "../include/GridPoint.h"
   "../include/constants.h"
   "../include/flags.h"
   )

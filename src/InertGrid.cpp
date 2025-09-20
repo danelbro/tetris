@@ -18,7 +18,7 @@ InertGrid::InertGrid(EndScreen* owner) : owner_{owner}
     enableRenderBGCells();
 }
 
-InertGrid::InertGrid(EndScreen* owner, const Grid& grid) : owner_{owner}
+InertGrid::InertGrid(EndScreen* owner, Grid& grid) : owner_{owner}
 {
     for (int i{0}; i < constants::gridWidth * constants::gridHeight; ++i)
         grid_.emplace_back(owner);
@@ -34,7 +34,7 @@ InertGrid::InertGrid(EndScreen* owner, const Grid& grid) : owner_{owner}
     }
 }
 
-void InertGrid::update(double, double) {}
+void InertGrid::update(std::chrono::milliseconds, std::chrono::milliseconds) {}
 
 void InertGrid::render(utl::Renderer& renderer)
 {
@@ -100,11 +100,11 @@ void InertGrid::placeWalls()
             rect.w = constants::gridWallThickness;
             rect.h = (constants::gridWallThickness * 2)
                      + (constants::cellHeight * constants::gridHeight);
-            rect.x =
-                static_cast<float>(pos().x)
-                + (static_cast<float>(i)
-                   * (constants::cellWidth * constants::gridWidth) / 2.0f)
-                + (static_cast<float>(i) * (constants::gridWallThickness / 2.0f));
+            rect.x = static_cast<float>(pos().x)
+                     + (static_cast<float>(i)
+                        * (constants::cellWidth * constants::gridWidth) / 2.0f)
+                     + (static_cast<float>(i)
+                        * (constants::gridWallThickness / 2.0f));
             rect.y = static_cast<float>(pos().y);
         } else {
             // top and bottom
@@ -113,11 +113,12 @@ void InertGrid::placeWalls()
             rect.h = constants::gridWallThickness;
 
             rect.x = static_cast<float>(pos().x);
-            rect.y = static_cast<float>(pos().y)
-                     + ((static_cast<float>(i) - 1.0f)
-                        * (constants::cellHeight * (constants::gridHeight / 2.0f)))
-                     + (static_cast<float>(i) - 1.0f)
-                           * (constants::gridWallThickness / 2.0f);
+            rect.y =
+                static_cast<float>(pos().y)
+                + ((static_cast<float>(i) - 1.0f)
+                   * (constants::cellHeight * (constants::gridHeight / 2.0f)))
+                + (static_cast<float>(i) - 1.0f)
+                      * (constants::gridWallThickness / 2.0f);
         }
         walls_[i] = utl::Rect{rect};
     }

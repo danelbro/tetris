@@ -11,7 +11,7 @@
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
 
-EndScreen::EndScreen(utl::Application& tetrisApp, const Grid& grid,
+EndScreen::EndScreen(utl::Application& tetrisApp, Grid& grid,
                      const ScoresPacket& scoresPacket)
     : utl::Stage{}, app_{tetrisApp}, grid_{this, grid},
       score_{scoresPacket.score}, level_{scoresPacket.level},
@@ -76,7 +76,7 @@ EndScreen::EndScreen(utl::Application& tetrisApp, const Grid& grid,
 }
 
 std::string
-EndScreen::handle_input(double, double,
+EndScreen::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
                         std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
     utl::process_input(screen(), app_.window().ID(), keyState);
@@ -95,12 +95,13 @@ EndScreen::handle_input(double, double,
     return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 }
 
-std::string EndScreen::update(double, double)
+std::string EndScreen::update(std::chrono::milliseconds,
+                              std::chrono::milliseconds)
 {
     return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 }
 
-void EndScreen::render(double, double)
+void EndScreen::render(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     utl::clearScreen(renderer());
     grid_.render(renderer());

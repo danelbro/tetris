@@ -11,6 +11,7 @@
 #include "constants.h"
 #include "flags.h"
 
+#include <chrono>
 #include <cstddef>
 #include <stdexcept>
 #include <string>
@@ -161,31 +162,30 @@ struct FilledCornerPositions {
     int frontCorners{0};
 };
 
-//declarations of static helper functions
+// declarations of static helper functions
 static const utl::Colour& determineColour(const TetrominoShape&);
 static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
-                           const Grid& grid, const GridPoint& topLeft);
+                           Grid& grid, const GridPoint& topLeft);
 static bool test(TestPacket& testPacket, int testNo);
 static std::vector<GridPoint> countFilledCorners(const GridPoint& origin,
-                                                 const Grid& grid);
+                                                 Grid& grid);
 static Orientation determineOrientation(size_t rotation);
 static FilledCornerPositions
 determinePositionOfFilledCorners(const Orientation& orientationPack,
                                  const std::vector<GridPoint>& filledCorners);
 
 // member functions
-Tetromino::Tetromino(TetrisGame* owner)
-    : utl::Entity{}, owner_{owner}
+Tetromino::Tetromino(TetrisGame* owner) : utl::Entity{}, owner_{owner}
 {
     init();
 }
 
-void Tetromino::update(double, double)
+void Tetromino::update(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     readShape();
 
-    repositionInGridSpace(0, dropThisTick);
-    dropThisTick = 0;
+    repositionInGridSpace(dropThisTick);
+    dropThisTick = {0, 0};
 }
 
 void Tetromino::render(utl::Renderer& renderer)
@@ -233,37 +233,38 @@ void Tetromino::reset(const TetrominoShape& newShape)
 {
     shape_.clear();
 
-    topLeft_ = {constants::gridWidth / 2 - 2, 0};
+    origin_ = {constants::gridWidth / 2 - 2, 0};
     tetrominoShape_ = newShape;
     col_ = determineColour(tetrominoShape_);
     currentRotation_ = 0;
 
     init();
     if (!isShapeInSpace(tetrominoShape_, currentRotation_, owner_->grid(),
-                        topLeft_))
+                        origin_))
         owner_->grid().notifyLoss(*this);
 }
 
-void Tetromino::move(int dir)
+void Tetromino::move(Translation move)
 {
-    repositionInGridSpace(dir, 0);
+    repositionInGridSpace(move);
 }
 
-void Tetromino::rotate(int dir)
+void Tetromino::rotate(flags::ROTATION rotation)
 {
+    int changeRotation{rotation == flags::ROTATION::CLOCKWISE ? 1 : -1};
     size_t new_rotation{
-        static_cast<size_t>((static_cast<int>(currentRotation_) + dir
+        static_cast<size_t>((static_cast<int>(currentRotation_) + changeRotation
                              + static_cast<int>(constants::rotations))
                             % static_cast<int>(constants::rotations))};
 
-    TestPacket testPacket(tetrominoShape_, owner_->grid(), topLeft_,
+    TestPacket testPacket(tetrominoShape_, owner_->grid(), origin_,
                           currentRotation_, new_rotation);
 
     for (int testNo{1}; testNo <= constants::tests; ++testNo) {
         if (test(testPacket, testNo)) {
             currentRotation_ = new_rotation;
-            topLeft_.x = testPacket.topLeft.x;
-            topLeft_.y = testPacket.topLeft.y;
+            origin_.x = testPacket.topLeft.x;
+            origin_.y = testPacket.topLeft.y;
             break;
         }
     }
@@ -271,17 +272,17 @@ void Tetromino::rotate(int dir)
 
 void Tetromino::tick_down()
 {
-    dropThisTick = 1;
+    dropThisTick.y = 1;
 }
 
 void Tetromino::soft_drop()
 {
-    repositionInGridSpace(0, 1);
+    repositionInGridSpace({0, 1});
 }
 
 void Tetromino::setTopLeft(const GridPoint& point)
 {
-    topLeft_ = point;
+    origin_ = point;
 }
 
 const utl::Colour& Tetromino::colour() const
@@ -299,9 +300,9 @@ const size_t& Tetromino::currentRotation() const
     return currentRotation_;
 }
 
-const GridPoint& Tetromino::topLeft() const
+const GridPoint& Tetromino::origin() const
 {
-    return topLeft_;
+    return origin_;
 }
 
 flags::TSpin Tetromino::checkTSpin() const
@@ -310,7 +311,7 @@ flags::TSpin Tetromino::checkTSpin() const
         return flags::TSpin::NOSPIN;
 
     std::vector<GridPoint> filledCorners{
-        countFilledCorners(topLeft_, owner_->grid())};
+        countFilledCorners(origin_, owner_->grid())};
 
     if (filledCorners.size() < constants::filledCornersForTSpin)
         return flags::TSpin::NOSPIN;
@@ -353,31 +354,30 @@ void Tetromino::readShape()
     }
 }
 
-void Tetromino::repositionInGridSpace(int x, int y)
+void Tetromino::repositionInGridSpace(Translation translation)
 {
-    GridPoint checkPoint{topLeft_.x + x, topLeft_.y + y};
+    GridPoint checkPoint{origin_ + translation};
     if (isShapeInSpace(tetrominoShape_, currentRotation_, owner_->grid(),
                        checkPoint)) {
-        topLeft_.x += x;
-        topLeft_.y += y;
-    } else if (y > 0)
+        origin_ += translation;
+    } else if (translation.y > 0)
         owner_->grid().notifyBlockedTetro(*this);
 }
 
 void Tetromino::repositionInScreenSpace()
 {
     set_pos({owner_->grid().innerTopLeftPt.x
-                 + static_cast<double>(topLeft_.x * constants::cellWidth),
+                 + static_cast<double>(origin_.x * constants::cellWidth),
              owner_->grid().innerTopLeftPt.y
-                 + static_cast<double>(topLeft_.y * constants::cellHeight)});
+                 + static_cast<double>(origin_.y * constants::cellHeight)});
 
     for (size_t i{0}; i < shape_.size(); ++i) {
         size_t x{i % constants::shapeWidth};
         size_t y{i / constants::shapeHeight};
         float newX{static_cast<float>(pos_.x)
-                 + constants::cellWidth * static_cast<float>(x)};
+                   + constants::cellWidth * static_cast<float>(x)};
         float newY{static_cast<float>(pos_.y)
-                 + constants::cellHeight * static_cast<float>(y)};
+                   + constants::cellHeight * static_cast<float>(y)};
         shape_[i].update_rect(
             {newX, newY, constants::cellWidth, constants::cellHeight});
     }
@@ -407,7 +407,7 @@ static const utl::Colour& determineColour(const TetrominoShape& shape)
 }
 
 static bool isShapeInSpace(const TetrominoShape& shape, const size_t& rotation,
-                           const Grid& grid, const GridPoint& topLeft)
+                           Grid& grid, const GridPoint& topLeft)
 {
     for (const GridPoint& cell : shape.at(rotation)) {
         int x{topLeft.x + cell.x};
@@ -455,7 +455,7 @@ static bool test(TestPacket& tp, int testNo)
 }
 
 static std::vector<GridPoint> countFilledCorners(const GridPoint& origin,
-                                                 const Grid& grid)
+                                                 Grid& grid)
 {
     std::vector<GridPoint> filledCorners{};
     filledCorners.reserve(constants::filledCornersForTSpin);

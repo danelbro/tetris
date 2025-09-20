@@ -11,6 +11,7 @@
 #include "flags.h"
 
 #include <array>
+#include <chrono>
 #include <memory>
 #include <queue>
 #include <random>
@@ -30,10 +31,12 @@ public:
     TetrisGame(utl::Application& tetris_app);
 
     std::string handle_input(
-        double t, double dt,
+        std::chrono::milliseconds t, std::chrono::milliseconds dt,
         std::array<bool, utl::KeyFlag::K_TOTAL>& keyState) override final;
-    std::string update(double t, double dt) override final;
-    void render(double t, double dt) override final;
+    std::string update(std::chrono::milliseconds t,
+                       std::chrono::milliseconds dt) override final;
+    void render(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
     utl::Application& app() override final;
     utl::Box& screen() override final;
     utl::Renderer& renderer() override final;
@@ -43,6 +46,7 @@ public:
     void resetActiveTetro();
     void notifyBaked(int linesCleared);
     void notifyLoss();
+    void addToScore(int points);
 
     Grid& grid();
     const Tetromino& activeTetro() const;
@@ -89,14 +93,15 @@ private:
         this, {constants::nextDisplayBoxPosX, constants::nextDisplayBoxPosY}};
 
     std::unordered_map<utl::KeyFlag, bool> keyMap{};
-    double timeSinceTick{0.0};
-    double tickTime_{constants::initialTickTime};
+    std::chrono::milliseconds timeSinceTick{0};
+    std::chrono::milliseconds tickTime_{constants::initialTickTime};
     bool canRotate{true};
-    double rotateTimer{0.0};
+    std::chrono::milliseconds rotateTimer{0};
     bool canMove{true};
-    double moveTimer{0.0};
+    std::chrono::milliseconds moveTimer{0};
     bool canSoftdrop{true};
-    double softdropTimer{0.0};
+    int softDropCells{0};
+    std::chrono::milliseconds softdropTimer{0};
     bool canHarddrop{true};
     int hardDropCells{0};
     flags::MOVE lastMove_{flags::MOVE::NULLMOVE};

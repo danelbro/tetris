@@ -4,6 +4,7 @@
 #include "flags.h"
 
 #include <array>
+#include <chrono>
 #include <memory>
 #include <string>
 #include <utility>
@@ -33,7 +34,7 @@ TitleScreen::TitleScreen(utl::Application& app) : utl::Stage{}, owner_{app}
 }
 
 std::string
-TitleScreen::handle_input(double, double,
+TitleScreen::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
                           std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
     utl::process_input(screen(), owner_.window().ID(), keyState);
@@ -49,12 +50,13 @@ TitleScreen::handle_input(double, double,
     return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
 }
 
-std::string TitleScreen::update(double, double)
+std::string TitleScreen::update(std::chrono::milliseconds,
+                                std::chrono::milliseconds)
 {
     return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
 }
 
-void TitleScreen::render(double, double)
+void TitleScreen::render(std::chrono::milliseconds, std::chrono::milliseconds)
 {
     utl::clearScreen(renderer());
     for (const auto& entity : entities_) {

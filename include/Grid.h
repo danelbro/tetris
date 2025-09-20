@@ -7,6 +7,7 @@
 #include "constants.h"
 
 #include <array>
+#include <chrono>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -22,7 +23,8 @@ public:
     Grid(TetrisGame* owner);
     Grid(TetrisGame* owner, const utl::Colour& colour);
 
-    void update(double t, double dt) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
     void render(utl::Renderer& renderer) override final;
     const std::string& type() const override final;
     const utl::Vec2d& pos() const override final;
@@ -30,7 +32,7 @@ public:
     utl::Stage& stage() override final;
     void set_pos(const utl::Vec2d& new_pos) override final;
 
-    const Cell& get(const GridPoint& coord) const;
+    Cell& get(const GridPoint& coord);
     const std::vector<Cell>& grid() const;
 
     void setCellColour(const GridPoint& coord, const utl::Colour& col);

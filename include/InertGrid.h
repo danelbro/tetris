@@ -5,10 +5,14 @@
 #include "Cell.h"
 #include "GridPoint.h"
 #include "constants.h"
-#include "utl_Stage.hpp"
 
+#include <array>
+#include <chrono>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
+#include <utl_Stage.hpp>
+#include <string>
+#include <vector>
 
 class EndScreen;
 class Grid;
@@ -17,9 +21,10 @@ class InertGrid : public utl::Entity {
 public:
     InertGrid() = default;
     InertGrid(EndScreen* owner);
-    InertGrid(EndScreen* owner, const Grid& grid);
+    InertGrid(EndScreen* owner, Grid& grid);
 
-    void update(double t, double dt) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
     void render(utl::Renderer& renderer) override final;
     const std::string& type() const override final;
     const utl::Vec2d& pos() const override final;

@@ -61,15 +61,23 @@ enum class MOVE
     MOVE,
     SOFTDROP,
     HARDDROP,
+    MOVES_TOTAL,
     NULLMOVE,
-    MOVES_TOTAL
+};
+
+enum class ROTATION
+{
+    CLOCKWISE,
+    ANTICLOCKWISE,
+    ROTATIONS_TOTAL,
 };
 
 enum class TSpin
 {
     NOSPIN,
     MINI,
-    TSPIN
+    TSPIN,
+    TSPIN_TYPES_TOTAL
 };
 
 }  // namespace flags

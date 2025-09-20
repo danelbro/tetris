@@ -6,6 +6,7 @@
 #include "flags.h"
 
 #include <array>
+#include <chrono>
 #include <string>
 #include <utl_Entity.hpp>
 #include <utl_SDLInterface.hpp>
@@ -19,7 +20,8 @@ struct DisplayCell : public utl::Entity {
     DisplayCell(TetrisGame* owner, const DisplayBox& displayBox,
                 const GridPoint& coord, const utl::Colour& colour);
 
-    void update(double t, double dt) override final;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override final;
     void render(utl::Renderer& renderer) override final;
     const std::string& type() const override final;
     const utl::Vec2d& pos() const override final;
