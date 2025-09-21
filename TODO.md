@@ -9,7 +9,7 @@
   - [x] Score t-spins
   - [x] Combos
   - [x] Difficult clears, back-to-backs
-  - [ ] Notify player about level-up, single, double, triiple, tetris, Mini-t-spin,
+  - [x] Notify player about level-up, single, double, triiple, tetris, Mini-t-spin,
         T-spin, combo, and back-to-back
 - [x] Scoreboard
 - [x] Wall kicks
@@ -22,3 +22,4 @@
 - [ ] Sound/music
 - [x] Cell borders
 - [x] Pause
+- [x] Lock “held” display box after use until baking a tetromino

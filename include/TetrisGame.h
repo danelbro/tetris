@@ -4,6 +4,7 @@
 #pragma once
 
 #include "DisplayBox.h"
+#include "DissolveTextObject.h"
 #include "GhostPiece.h"
 #include "Grid.h"
 #include "Tetromino.h"
@@ -16,7 +17,7 @@
 #include <queue>
 #include <random>
 #include <string>
-#include <unordered_map>
+#include <map>
 #include <utl_Application.hpp>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -25,6 +26,18 @@
 #include <utl_TextObject.hpp>
 #include <utl_random.hpp>
 #include <vector>
+
+enum class Notification {
+    LEVEL_UP,
+    SINGLE,
+    DOUBLE,
+    TRIPLE,
+    TETRIS,
+    MINI_TSPIN,
+    TSPIN,
+    COMBO,
+    BACKTOBACK,
+};
 
 class TetrisGame : public utl::Stage {
 public:
@@ -59,6 +72,8 @@ private:
     const TetrominoShape& getRandomShape();
     void fillShapeQueue();
     void changeLevel();
+    int determineLineClearPoints(int linesCleared);
+    int determineTSpinPoints(int linesCleared);
 
 private:
     std::string label{flags::STAGES_MAP.at(flags::STAGES::TETRIS)};
@@ -113,4 +128,6 @@ private:
     utl::TextObject levelText;
     utl::TextObject linesText;
     utl::TextObject pauseText;
+
+    std::map<Notification, DissolveTextObject> notifications;
 };

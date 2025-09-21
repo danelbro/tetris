@@ -1,4 +1,4 @@
-// -*- C++ -*
+// -*- C++ -*-
 #pragma once
 
 #include "DisplayCell.h"
@@ -30,7 +30,10 @@ public:
     void set_pos(const utl::Vec2d& new_pos) override final;
 
     bool isActivated();
+    bool isLocked();
 
+    void lock();
+    void unlock();
     void activate();
     void deactivate();
     void updateShape(const TetrominoShape& newShape);
@@ -52,5 +55,6 @@ private:
     std::array<utl::Rect, constants::displayBoxWalls> walls{};
     std::vector<DisplayCell> internalGrid{};
     bool isActive{false};
+    bool isLocked_{false};
     TetrominoShape displayedShape{Z_tetromino};
 };

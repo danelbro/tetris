@@ -74,6 +74,21 @@ bool DisplayBox::isActivated()
     return isActive;
 }
 
+bool DisplayBox::isLocked()
+{
+    return isLocked_;
+}
+
+void DisplayBox::lock()
+{
+    isLocked_ = true;
+}
+
+void DisplayBox::unlock()
+{
+    isLocked_ = false;
+}
+
 void DisplayBox::activate()
 {
     isActive = true;

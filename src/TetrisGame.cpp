@@ -1,5 +1,6 @@
 #include "TetrisGame.h"
 
+#include "DissolveTextObject.h"
 #include "Grid.h"
 #include "Tetromino.h"
 #include "TetrominoShape.h"
@@ -22,8 +23,6 @@
 static const utl::Vec2d newpos{
     constants::gridPosX + constants::gridWallThickness,
     constants::gridPosY + constants::gridWallThickness};
-static int determineLineClearPoints(int linesCleared);
-static int determineTSpinPoints(TetrisGame& game, int linesCleared);
 
 TetrisGame::TetrisGame(utl::Application& tetris_app)
     : utl::Stage{}, app_{tetris_app},
@@ -87,6 +86,44 @@ TetrisGame::TetrisGame(utl::Application& tetris_app)
                         + constants::displayBoxTitleBuffer);
 
     pauseText.recentre(app_.screen());
+
+    notifications[Notification::LEVEL_UP] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "LEVEL UP"};
+    notifications[Notification::SINGLE] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "SINGLE"};
+    notifications[Notification::DOUBLE] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "DOUBLE"};
+    notifications[Notification::TRIPLE] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "TRIPLE"};
+    notifications[Notification::TETRIS] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "TETRIS"};
+    notifications[Notification::MINI_TSPIN] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "MINI T-SPIN"};
+    notifications[Notification::TSPIN] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "T-SPIN"};
+    notifications[Notification::COMBO] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "COMBO"};
+    notifications[Notification::BACKTOBACK] = DissolveTextObject{
+        this, &displayBoxTitleFont, colours::titleText, "BACK-TO-BACK"};
+
+    for (auto& [notificationType, notification] : notifications) {
+        notification.recentreX(scoreText);
+        notification.recentreY(grid_);
+    }
+
+    notifications[Notification::LEVEL_UP].move_y_pos(constants::levelUpYShift);
+
+    notifications[Notification::MINI_TSPIN].move_y_pos(constants::tSpinYShift);
+    notifications[Notification::TSPIN].move_y_pos(constants::tSpinYShift);
+
+    notifications[Notification::SINGLE].move_y_pos(constants::lineClearYShift);
+    notifications[Notification::DOUBLE].move_y_pos(constants::lineClearYShift);
+    notifications[Notification::TRIPLE].move_y_pos(constants::lineClearYShift);
+    notifications[Notification::TETRIS].move_y_pos(constants::lineClearYShift);
+
+    notifications[Notification::COMBO].move_y_pos(constants::comboYShift);
+    notifications[Notification::BACKTOBACK].move_y_pos(
+        constants::backToBackYShift);
 
     entities_.emplace_back(std::move(heldTitle));
     entities_.emplace_back(std::move(nextTitle));
@@ -258,6 +295,8 @@ std::string TetrisGame::update(std::chrono::milliseconds t,
     for (const auto& entity : entities_) {
         entity->update(t, dt);
     }
+    for (auto& [NotificationType, notification] : notifications)
+        notification.update(t, dt);
     return flags::STAGES_MAP.at(flags::STAGES::TETRIS);
 }
 
@@ -275,6 +314,10 @@ void TetrisGame::render(std::chrono::milliseconds, std::chrono::milliseconds)
     for (const auto& entity : entities_) {
         entity->render(renderer());
     }
+
+    for (auto& [NotificationType, notification] : notifications)
+        notification.render(renderer());
+
     if (isPaused)
         pauseText.render(renderer());
     utl::presentRenderer(renderer());
@@ -297,6 +340,9 @@ utl::Renderer& TetrisGame::renderer()
 
 void TetrisGame::holdTetro()
 {
+    if (heldDisplayBox.isLocked())
+        return;
+
     TetrominoShape newHeld{activeTetro_.shape()};
 
     if (heldDisplayBox.isActivated()) {
@@ -308,6 +354,8 @@ void TetrisGame::holdTetro()
         heldDisplayBox.updateShape(newHeld);
         resetActiveTetro();
     }
+
+    heldDisplayBox.lock();
 }
 
 void TetrisGame::hardDrop()
@@ -323,6 +371,7 @@ void TetrisGame::resetActiveTetro()
     const TetrominoShape& newShape{upcomingShapes_.front()};
     upcomingShapes_.pop();
     nextDisplayBox.updateShape(upcomingShapes_.front());
+    heldDisplayBox.unlock();
     lastMove_ = flags::MOVE::NULLMOVE;
 
     activeTetro_.reset(newShape);
@@ -340,10 +389,13 @@ void TetrisGame::notifyBaked(int linesCleared)
         comboCount = -1;
     }
 
+    if (comboCount >= 1)
+        notifications[Notification::COMBO].switchOn();
+
     int scoreThisFrame{0};
 
     int linePoints{determineLineClearPoints(linesCleared) * level};
-    int tSpinPoints{determineTSpinPoints(*this, linesCleared) * level};
+    int tSpinPoints{determineTSpinPoints(linesCleared) * level};
     int comboPoints{constants::baseComboPoints * comboCount * level};
     int hardDropPoints{constants::pointsPerHardDropCell * hardDropCells};
 
@@ -356,8 +408,10 @@ void TetrisGame::notifyBaked(int linesCleared)
     tSpinPoints > 0 ? scoreThisFrame = tSpinPoints
                     : scoreThisFrame = linePoints;
 
-    if (difficultClear && difficultClearLastTime)
+    if (difficultClear && difficultClearLastTime) {
         scoreThisFrame = static_cast<int>(std::trunc(scoreThisFrame * 1.5));
+        notifications[Notification::BACKTOBACK].switchOn();
+    }
 
     if (linesCleared >= constants::singleLines)
         scoreThisFrame += comboPoints;
@@ -435,6 +489,7 @@ void TetrisGame::changeLevel()
 
     ++level;
 
+    notifications[Notification::LEVEL_UP].switchOn();
     levelText.updateText(std::to_string(level));
     levelText.recentreX(nextDisplayBox);
 
@@ -445,29 +500,32 @@ void TetrisGame::changeLevel()
     linesClearedThisLevel -= constants::linesPerLevel;
 }
 
-int determineLineClearPoints(int linesCleared)
+int TetrisGame::determineLineClearPoints(int linesCleared)
 {
     switch (linesCleared) {
     case constants::singleLines:
+        notifications[Notification::SINGLE].switchOn();
         return constants::singlePoints;
     case constants::doubleLines:
+        notifications[Notification::DOUBLE].switchOn();
         return constants::doublePoints;
     case constants::tripleLines:
+        notifications[Notification::TRIPLE].switchOn();
         return constants::triplePoints;
     case constants::tetrisLines:
+        notifications[Notification::TETRIS].switchOn();
         return constants::tetrisPoints;
     default:
         return 0;
     }
 }
 
-int determineTSpinPoints(TetrisGame& game, int linesCleared)
+int TetrisGame::determineTSpinPoints(int linesCleared)
 {
-    if (game.activeTetro().shape() != T_tetromino
-        || game.lastMove() != flags::MOVE::ROTATE)
+    if (activeTetro_.shape() != T_tetromino || lastMove_ != flags::MOVE::ROTATE)
         return 0;
 
-    flags::TSpin tSpinType{game.activeTetro().checkTSpin()};
+    flags::TSpin tSpinType{activeTetro_.checkTSpin()};
     int baseTSpinPoints{};
     int tSpinPoints{};
 
@@ -475,9 +533,11 @@ int determineTSpinPoints(TetrisGame& game, int linesCleared)
     case flags::TSpin::NOSPIN:
         return 0;
     case flags::TSpin::MINI:
+        notifications[Notification::MINI_TSPIN].switchOn();
         baseTSpinPoints = constants::miniTSpinBasePoints;
         break;
     case flags::TSpin::TSPIN:
+        notifications[Notification::TSPIN].switchOn();
         baseTSpinPoints = constants::TSpinBasePoints;
         break;
     default:
@@ -486,7 +546,8 @@ int determineTSpinPoints(TetrisGame& game, int linesCleared)
 
     tSpinPoints = baseTSpinPoints * (linesCleared + 1);
 
-    if (tSpinType == flags::TSpin::MINI && linesCleared == constants::doubleLines)
+    if (tSpinType == flags::TSpin::MINI
+        && linesCleared == constants::doubleLines)
         tSpinPoints += constants::miniTSpinBasePoints;
 
     return tSpinPoints;

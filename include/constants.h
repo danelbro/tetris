@@ -48,6 +48,7 @@ inline constexpr std::chrono::seconds initialTickTime{1s};
 inline constexpr std::chrono::milliseconds rotateTimerMax{100ms};
 inline constexpr std::chrono::milliseconds moveTimerMax{50ms};
 inline constexpr std::chrono::milliseconds softdropTimerMax{50ms};
+inline constexpr std::chrono::milliseconds dissolveTODefaultVisibleTime{1000ms};
 
 inline constexpr int maxLevel{15};
 inline constexpr int linesPerLevel{10};
@@ -88,14 +89,20 @@ inline constexpr double heldDisplayBoxPosX{
     (gridPosX * 2 / 3)
     - (static_cast<double>((displayBoxWallsThickness * 2)
                            + (displayCellWidth * displayBoxGridWidth))
-       / 2)};
+       / 2) - 50};
 inline constexpr double heldDisplayBoxPosY{gridPosY + gridWallThickness};
 
 inline constexpr double nextDisplayBoxPosX{
     gridRightX + ((screenWidth - gridRightX) / 3.0)
     - (static_cast<double>((displayBoxWallsThickness * 2)
                            + (displayCellWidth * displayBoxGridWidth))
-       / 2)};
+       / 2) + 50};
 inline constexpr double nextDisplayBoxPosY{gridPosY + gridWallThickness};
+
+inline constexpr double levelUpYShift{100};
+inline constexpr double tSpinYShift{150};
+inline constexpr double lineClearYShift{200};
+inline constexpr double comboYShift{250};
+inline constexpr double backToBackYShift{300};
 
 }  // namespace constants

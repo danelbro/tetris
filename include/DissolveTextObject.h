@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include <chrono>
 #include <utl_SDLInterface.hpp>
 #include <utl_Stage.hpp>
@@ -17,15 +18,21 @@ public:
                        const utl::Vec2d& pos);
     DissolveTextObject(utl::Stage* stage, utl::Font* font,
                        const utl::Colour& colour, const std::string& newText,
-                       const utl::Vec2d& pos, std::chrono::milliseconds flashLength);
+                       const utl::Vec2d& pos,
+                       std::chrono::milliseconds flashLength);
 
-    void update(std::chrono::milliseconds t, std::chrono::milliseconds dt) override;
+    void update(std::chrono::milliseconds t,
+                std::chrono::milliseconds dt) override;
     void render(utl::Renderer& renderer) override;
 
-    void renderMe();
+    void switchOn();
+
+    std::chrono::milliseconds visibleTime{
+        constants::dissolveTODefaultVisibleTime};
 
 private:
-    bool renderMe_{false};
-    std::chrono::milliseconds visibleTime{5000};
+    bool isVisible_{false};
     std::chrono::milliseconds visibleTimer{0};
+    utl::Rect mask;
+    utl::Colour maskColour{};
 };
