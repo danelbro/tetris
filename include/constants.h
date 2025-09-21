@@ -13,7 +13,7 @@ namespace constants {
 using namespace std::chrono_literals;
 
 inline const std::string tetrisTitle{"Tetris"};
-inline const std::string tetrisVersion{"0.0.1"};
+inline const std::string tetrisVersion{"1.0.0"};
 inline const std::string tetrisIdentifier{"com.tetris.tetris"};
 inline constexpr int screenWidth{1024};
 inline constexpr int screenHeight{768};
