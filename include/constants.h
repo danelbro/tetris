@@ -13,7 +13,7 @@ namespace constants {
 using namespace std::chrono_literals;
 
 inline const std::string tetrisTitle{"Tetris"};
-inline const std::string tetrisVersion{"1.0.0"};
+inline const std::string tetrisVersion{"1.0.1"};
 inline const std::string tetrisIdentifier{"com.tetris.tetris"};
 inline constexpr int screenWidth{1024};
 inline constexpr int screenHeight{768};
@@ -44,9 +44,14 @@ inline constexpr int tetrisPoints{800};
 inline constexpr int miniTSpinBasePoints{100};
 inline constexpr int TSpinBasePoints{400};
 
+inline constexpr std::chrono::milliseconds sixtyFPSFrameTime{(1000ms / 60)};
 inline constexpr std::chrono::seconds initialTickTime{1s};
-inline constexpr std::chrono::milliseconds rotateTimerMax{100ms};
-inline constexpr std::chrono::milliseconds moveTimerMax{50ms};
+inline constexpr int initialMoveEveryXFrames{15};
+inline constexpr int movingMoveEveryXFrames{5};
+inline constexpr std::chrono::milliseconds moveTimerMax{
+    sixtyFPSFrameTime * initialMoveEveryXFrames};
+inline constexpr std::chrono::milliseconds moveTimerMin{
+    sixtyFPSFrameTime * movingMoveEveryXFrames};
 inline constexpr std::chrono::milliseconds softdropTimerMax{50ms};
 inline constexpr std::chrono::milliseconds dissolveTODefaultVisibleTime{1000ms};
 

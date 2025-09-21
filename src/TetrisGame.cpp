@@ -136,6 +136,7 @@ std::string
 TetrisGame::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
                          std::array<bool, utl::KeyFlag::K_TOTAL>& keyState)
 {
+    using namespace std::chrono_literals;
     utl::process_input(screen(), app_.window().ID(), keyState);
 
     // quitting
@@ -187,34 +188,62 @@ TetrisGame::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
     }
 
     // rotating
-    if (canRotate) {
+    if (!keyMap.at(utl::KeyFlag::K_UP) && !keyMap.at(utl::KeyFlag::K_X)
+        && !keyMap.at(utl::KeyFlag::K_LCTRL) && !keyMap.at(utl::KeyFlag::K_Z)) {
         if (keyState.at(utl::KeyFlag::K_UP) || keyState.at(utl::KeyFlag::K_X)) {
             activeTetro_.rotate(flags::ROTATION::CLOCKWISE);
             lastMove_ = flags::MOVE::ROTATE;
-            canRotate = false;
+            keyMap.at(utl::KeyFlag::K_UP) = keyState.at(utl::KeyFlag::K_UP);
+            keyMap.at(utl::KeyFlag::K_X) = keyState.at(utl::KeyFlag::K_X);
             goto cleanup;
         } else if (keyState.at(utl::KeyFlag::K_LCTRL)
                    || keyState.at(utl::KeyFlag::K_Z)) {
             activeTetro_.rotate(flags::ROTATION::ANTICLOCKWISE);
             lastMove_ = flags::MOVE::ROTATE;
-            canRotate = false;
+            keyMap.at(utl::KeyFlag::K_LCTRL) =
+                keyState.at(utl::KeyFlag::K_LCTRL);
+            keyMap.at(utl::KeyFlag::K_Z) = keyState.at(utl::KeyFlag::K_Z);
             goto cleanup;
         }
+    } else {
+        keyMap.at(utl::KeyFlag::K_UP) = keyState.at(utl::KeyFlag::K_UP);
+        keyMap.at(utl::KeyFlag::K_X) = keyState.at(utl::KeyFlag::K_X);
+        keyMap.at(utl::KeyFlag::K_LCTRL) = keyState.at(utl::KeyFlag::K_LCTRL);
+        keyMap.at(utl::KeyFlag::K_Z) = keyState.at(utl::KeyFlag::K_Z);
     }
 
     // moving
-    if (canMove) {
-        if (keyState.at(utl::KeyFlag::K_LEFT)) {
-            activeTetro_.move({-1, 0});
+    keyMap.at(utl::KeyFlag::K_LEFT) = keyState.at(utl::KeyFlag::K_LEFT);
+    keyMap.at(utl::KeyFlag::K_RIGHT) = keyState.at(utl::KeyFlag::K_RIGHT);
+    if (keyMap.at(utl::KeyFlag::K_LEFT) && keyMap.at(utl::KeyFlag::K_RIGHT)) {
+        // both are pressed
+        canMove = true;
+        isMoving = false;
+        isWithinFirstMove = false;
+        moveTimer = 0ms;
+    } else if (!keyMap.at(utl::KeyFlag::K_LEFT)
+               && !keyMap.at(utl::KeyFlag::K_RIGHT)) {
+        // neither is pressed
+        canMove = true;
+        isMoving = false;
+        isWithinFirstMove = false;
+        moveTimer = 0ms;
+    } else {  //    exactly one is pressed
+        if (canMove) {
             lastMove_ = flags::MOVE::MOVE;
             canMove = false;
-            goto cleanup;
-        } else if (keyState.at(utl::KeyFlag::K_RIGHT)) {
-            activeTetro_.move({1, 0});
-            lastMove_ = flags::MOVE::MOVE;
-            canMove = false;
-            goto cleanup;
+            if (!isMoving)
+                isWithinFirstMove = true;
+            isMoving = true;
+
+            if (keyState.at(utl::KeyFlag::K_LEFT)) {
+                activeTetro_.move({-1, 0});
+            }
+            if (keyState.at(utl::KeyFlag::K_RIGHT)) {
+                activeTetro_.move({1, 0});
+            }
         }
+        goto cleanup;
     }
 
     // soft-dropping
@@ -259,19 +288,16 @@ std::string TetrisGame::update(std::chrono::milliseconds t,
     if (upcomingShapes_.size() < constants::shapeQueueMin)
         fillShapeQueue();
 
-    if (!canRotate) {
-        rotateTimer += dt;
-        if (rotateTimer >= constants::rotateTimerMax) {
-            canRotate = true;
-            rotateTimer = 0ms;
-        }
-    }
-
-    if (!canMove) {
+    if (isMoving) {
         moveTimer += dt;
-        if (moveTimer >= constants::moveTimerMax) {
+        auto moveTime = 0ms;
+        isWithinFirstMove ? moveTime = constants::moveTimerMax
+                          : moveTime = constants::moveTimerMin;
+        if (moveTimer >= moveTime) {
             canMove = true;
             moveTimer = 0ms;
+            if (isWithinFirstMove)
+                isWithinFirstMove = false;
         }
     }
 
@@ -495,7 +521,9 @@ void TetrisGame::changeLevel()
 
     using namespace std::chrono;
     using namespace std::chrono_literals;
-    tickTime_ = duration_cast<milliseconds>(1000ms - (62.5ms * level));
+
+    tickTime_ = std::chrono::milliseconds(static_cast<int>(
+        std::pow(1000, 2 - level) * std::pow(807 - (7 * level), level - 1)));
 
     linesClearedThisLevel -= constants::linesPerLevel;
 }

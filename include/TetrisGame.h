@@ -110,9 +110,9 @@ private:
     std::unordered_map<utl::KeyFlag, bool> keyMap{};
     std::chrono::milliseconds timeSinceTick{0};
     std::chrono::milliseconds tickTime_{constants::initialTickTime};
-    bool canRotate{true};
-    std::chrono::milliseconds rotateTimer{0};
     bool canMove{true};
+    bool isMoving{false};
+    bool isWithinFirstMove{false};
     std::chrono::milliseconds moveTimer{0};
     bool canSoftdrop{true};
     int softDropCells{0};
