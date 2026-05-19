@@ -18,10 +18,10 @@ endif()
 set(SRC_PATH "src")
 set(INC_PATH "include")
 file(GLOB_RECURSE SRCS "${SRC_PATH}/*.cpp")
-file(GLOB_RECURSE HEADERS "${INC_PATH}/*.hpp")
+file(GLOB_RECURSE HEADERS "${INC_PATH}/*.h")
 
 add_executable(${PROJECT_NAME} ${SRCS} ${HEADERS})
-set_target_properties(${EDITOR_NAME}
+set_target_properties(${PROJECT_NAME}
 	PROPERTIES WIN32_EXECUTABLE $<AND:$<PLATFORM_ID:Windows>,$<CONFIG:Release>>)
 source_group("Source Files" FILES ${SRCS})
 source_group("Header Files" FILES ${HEADERS})
@@ -56,4 +56,4 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                    COMMAND ${CMAKE_COMMAND} -E copy_directory
-                       ${CMAKE_SOURCE_DIR}/data/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/data/)
+                       ${CMAKE_SOURCE_DIR}/data/ ${CMAKE_BINARY_DIR}/data/)
