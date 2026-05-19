@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./build/$1/src/tetris
+./build/$1/bin/tetris
