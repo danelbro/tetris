@@ -50,7 +50,9 @@ else()
 endif()
 
 add_subdirectory(extern/utilityKnife)
-target_link_libraries(tetris PUBLIC utilityKnife)
+target_link_libraries(tetris PUBLIC utl_engine)
+
+set_target_properties(utl_engine PROPERTIES FOLDER "Dependencies")
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT "${PROJECT_NAME}")
 
