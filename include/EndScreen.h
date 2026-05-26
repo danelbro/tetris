@@ -3,6 +3,8 @@
 #pragma once
 
 #include "InertGrid.h"
+#include "SDL3/SDL_audio.h"
+#include "constants.h"
 #include "flags.h"
 
 #include <chrono>
@@ -56,4 +58,11 @@ private:
     utl::TextObject levelText_;
     utl::TextObject linesTitle_;
     utl::TextObject linesText_;
+
+    utl::Mixer mixer{SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, 0};
+    utl::Track gameOverTrack{mixer};
+    utl::Effect gameOverEffect{mixer, constants::gameoverPath};
+    utl::Track highScoresTrack{mixer};
+    utl::Music highScoresMusic{mixer, constants::highScoresPath};
+    bool hasMusicStarted{false};
 };

@@ -2,6 +2,7 @@
 
 #include "DissolveTextObject.h"
 #include "Grid.h"
+#include "SDL3/SDL_properties.h"
 #include "Tetromino.h"
 #include "TetrominoShape.h"
 #include "colours.h"
@@ -130,6 +131,19 @@ TetrisGame::TetrisGame(utl::Application& tetris_app)
     entities_.emplace_back(std::move(scoreTitle));
     entities_.emplace_back(std::move(levelTitle));
     entities_.emplace_back(std::move(linesTitle));
+
+    musicTrack.addAudio(bgMusic);
+    musicTrack.setTrackGain(0.4f);
+    lineClearTrack.addAudio(lineClearEffect);
+    lineClearTrack.setTrackGain(1.1f);
+    tetrisTrack.addAudio(tetrisEffect);
+    levelUpTrack.addAudio(levelUpEffect);
+    pauseTrack.addAudio(pauseEffect);
+    unpauseTrack.addAudio(unpauseEffect);
+
+    auto props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
+    musicTrack.play(props);
 }
 
 std::string
@@ -150,6 +164,8 @@ TetrisGame::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
             if (isPaused)
                 return flags::STAGES_MAP.at(flags::STAGES::TITLE_SCREEN);
             isPaused = true;
+            musicTrack.pause();
+            pauseTrack.play(0);
             keyMap.at(utl::KeyFlag::K_ESCAPE) =
                 keyState.at(utl::KeyFlag::K_ESCAPE);
         }
@@ -161,6 +177,8 @@ TetrisGame::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
     if (!keyMap.at(utl::KeyFlag::K_ENTER)) {
         if (keyState.at(utl::KeyFlag::K_ENTER)) {
             isPaused = false;
+            unpauseTrack.play(0);
+            musicTrack.resume();
             keyMap.at(utl::KeyFlag::K_ENTER) =
                 keyState.at(utl::KeyFlag::K_ENTER);
         }
@@ -516,6 +534,7 @@ void TetrisGame::changeLevel()
     ++level;
 
     notifications[Notification::LEVEL_UP].switchOn();
+    levelUpTrack.play(0);
     levelText.updateText(std::to_string(level));
     levelText.recentreX(nextDisplayBox);
 
@@ -533,15 +552,19 @@ int TetrisGame::determineLineClearPoints(int linesCleared)
     switch (linesCleared) {
     case constants::singleLines:
         notifications[Notification::SINGLE].switchOn();
+        lineClearTrack.play(0);
         return constants::singlePoints;
     case constants::doubleLines:
         notifications[Notification::DOUBLE].switchOn();
+        lineClearTrack.play(0);
         return constants::doublePoints;
     case constants::tripleLines:
         notifications[Notification::TRIPLE].switchOn();
+        lineClearTrack.play(0);
         return constants::triplePoints;
     case constants::tetrisLines:
         notifications[Notification::TETRIS].switchOn();
+        tetrisTrack.play(0);
         return constants::tetrisPoints;
     default:
         return 0;

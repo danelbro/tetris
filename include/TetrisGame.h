@@ -7,17 +7,20 @@
 #include "DissolveTextObject.h"
 #include "GhostPiece.h"
 #include "Grid.h"
+#include "SDL3/SDL_audio.h"
+#include "SDL3/SDL_properties.h"
 #include "Tetromino.h"
 #include "TetrominoShape.h"
+#include "constants.h"
 #include "flags.h"
 
 #include <array>
 #include <chrono>
+#include <map>
 #include <memory>
 #include <queue>
 #include <random>
 #include <string>
-#include <map>
 #include <utl_Application.hpp>
 #include <utl_Box.hpp>
 #include <utl_Entity.hpp>
@@ -27,7 +30,8 @@
 #include <utl_random.hpp>
 #include <vector>
 
-enum class Notification {
+enum class Notification
+{
     LEVEL_UP,
     SINGLE,
     DOUBLE,
@@ -130,4 +134,19 @@ private:
     utl::TextObject pauseText;
 
     std::map<Notification, DissolveTextObject> notifications;
+
+    utl::Mixer mixer{SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, 0};
+    utl::Track musicTrack{mixer};
+    utl::Music bgMusic{mixer, constants::bgMusicPath};
+
+    utl::Track lineClearTrack{mixer};
+    utl::Effect lineClearEffect{mixer, constants::lineClearEffectPath};
+    utl::Track tetrisTrack{mixer};
+    utl::Effect tetrisEffect{mixer, constants::tetrisEffectPath};  // ha ha
+    utl::Track levelUpTrack{mixer};
+    utl::Effect levelUpEffect{mixer, constants::levelUpEffectPath};
+    utl::Track pauseTrack{mixer};
+    utl::Effect pauseEffect{mixer, constants::pauseEffectPath};
+    utl::Track unpauseTrack{mixer};
+    utl::Effect unpauseEffect{mixer, constants::unpauseEffectPath};
 };

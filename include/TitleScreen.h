@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "SDL3/SDL_audio.h"
 #include "constants.h"
 #include "flags.h"
 
@@ -46,4 +47,7 @@ private:
     utl::Font instructionsFont_{utl::createFont(
         constants::instructionsFontPath, constants::instructionsFontSize)};
     std::vector<std::unique_ptr<utl::Entity>> entities_{};
+    utl::Mixer mixer{SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, 0};
+    utl::Track musicTrack{mixer};
+    utl::Music titleMusic{mixer, constants::titleMusicPath};
 };

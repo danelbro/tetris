@@ -1,6 +1,7 @@
 #include "EndScreen.h"
 
 #include "Grid.h"
+#include "SDL3_mixer/SDL_mixer.h"
 #include "colours.h"
 #include "constants.h"
 #include "flags.h"
@@ -73,6 +74,11 @@ EndScreen::EndScreen(utl::Application& tetrisApp, Grid& grid,
     linesText_.recentreX(linesTitle_);
     linesText_.set_y_pos(linesTitle_.pos().y + linesTitle_.size().h
                          + constants::displayBoxTitleBuffer);
+
+    gameOverTrack.addAudio(gameOverEffect);
+    highScoresTrack.addAudio(highScoresMusic);
+    highScoresTrack.setTrackGain(1.1f);
+    gameOverTrack.play(0);
 }
 
 std::string
@@ -98,6 +104,10 @@ EndScreen::handle_input(std::chrono::milliseconds, std::chrono::milliseconds,
 std::string EndScreen::update(std::chrono::milliseconds,
                               std::chrono::milliseconds)
 {
+    if (!gameOverTrack.isPlaying() && !hasMusicStarted) {
+        highScoresTrack.play(0);
+        hasMusicStarted = true;
+    }
     return flags::STAGES_MAP.at(flags::STAGES::END_SCREEN);
 }
 

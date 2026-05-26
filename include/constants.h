@@ -94,14 +94,16 @@ inline constexpr double heldDisplayBoxPosX{
     (gridPosX * 2 / 3)
     - (static_cast<double>((displayBoxWallsThickness * 2)
                            + (displayCellWidth * displayBoxGridWidth))
-       / 2) - 50};
+       / 2)
+    - 50};
 inline constexpr double heldDisplayBoxPosY{gridPosY + gridWallThickness};
 
 inline constexpr double nextDisplayBoxPosX{
     gridRightX + ((screenWidth - gridRightX) / 3.0)
     - (static_cast<double>((displayBoxWallsThickness * 2)
                            + (displayCellWidth * displayBoxGridWidth))
-       / 2) + 50};
+       / 2)
+    + 50};
 inline constexpr double nextDisplayBoxPosY{gridPosY + gridWallThickness};
 
 inline constexpr double levelUpYShift{100};
@@ -109,5 +111,15 @@ inline constexpr double tSpinYShift{150};
 inline constexpr double lineClearYShift{200};
 inline constexpr double comboYShift{250};
 inline constexpr double backToBackYShift{300};
+
+inline const std::filesystem::path titleMusicPath{"data/titlemusic.wav"};
+inline const std::filesystem::path bgMusicPath{"data/bgmusic.wav"};
+inline const std::filesystem::path lineClearEffectPath{"data/lineClear.wav"};
+inline const std::filesystem::path tetrisEffectPath{"data/tetrisEffect.wav"};
+inline const std::filesystem::path levelUpEffectPath{"data/levelUp.wav"};
+inline const std::filesystem::path pauseEffectPath{"data/pause.wav"};
+inline const std::filesystem::path unpauseEffectPath{"data/unpause.wav"};
+inline const std::filesystem::path gameoverPath{"data/gameOver.wav"};
+inline const std::filesystem::path highScoresPath{"data/highScores.wav"};
 
 }  // namespace constants

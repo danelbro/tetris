@@ -1,5 +1,6 @@
 #include "TitleScreen.h"
 
+#include "SDL3/SDL_properties.h"
 #include "colours.h"
 #include "flags.h"
 
@@ -31,6 +32,12 @@ TitleScreen::TitleScreen(utl::Application& app) : utl::Stage{}, owner_{app}
     entities_.emplace_back(std::move(instructions));
 
     utl::setRendererDrawColour(renderer(), colours::background);
+
+    musicTrack.addAudio(titleMusic);
+    auto props = SDL_CreateProperties();
+    SDL_SetNumberProperty(props, MIX_PROP_PLAY_LOOPS_NUMBER, -1);
+    musicTrack.setTrackGain(0.4f);
+    musicTrack.play(props);
 }
 
 std::string
